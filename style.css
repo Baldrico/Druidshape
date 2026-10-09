@@ -1538,3 +1538,24 @@ main#content-area {
   color: var(--text-color-secondary);
   font-size: 24px;
 }
+
+/* Moon Toggle Icon */
+.moon-icon-toggle {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-secondary);
+  padding: 4px;
+  border-radius: 50%;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.moon-icon-toggle:active {
+  background-color: rgba(255,255,255,0.1);
+}
+
+.moon-icon-toggle input:checked + .material-icons {
+  color: var(--header-color-light);
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+}
