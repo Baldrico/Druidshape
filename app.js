@@ -97,7 +97,10 @@ const SourceDB = {
     }
 };
 
+const CURRENT_DATA_VERSION = 3;
+
 let state = {
+    dataVersion: 0,
     darkMode: false,
     characters: [
         { id: 1, name: 'Default', level: 0, isMoon: false, favs: {}, seen: {} }
@@ -338,15 +341,16 @@ async function fetchDefaultSources() {
         loaded.push(volosSource);
     }
 
-    // Always include a blank homebrew.json source
+    // Always include homebrew.json source (preserving any existing custom beasts)
+    const existingHb = await SourceDB.get('homebrew');
     const hbSource = {
         id: 'homebrew',
         name: 'Homebrew',
         filename: 'homebrew.json',
         isDefault: true,
         isHomebrew: true,
-        enabled: true,
-        beasts: []
+        enabled: (existingHb && existingHb.enabled !== undefined) ? existingHb.enabled : true,
+        beasts: (existingHb && Array.isArray(existingHb.beasts)) ? existingHb.beasts : []
     };
     await SourceDB.put(hbSource);
     loaded.push(hbSource);
@@ -397,76 +401,42 @@ async function init() {
     // Initialize Data Sources
     await SourceDB.init();
     let sources = await SourceDB.getAll();
+    const needsMigration = !state.dataVersion || state.dataVersion < CURRENT_DATA_VERSION;
+
     // If no sources exist, or existing sources have 0 beasts, populate defaults
     if (!sources || sources.length === 0 || sources.every(s => !s.beasts || s.beasts.length === 0)) {
         sources = await fetchDefaultSources();
+        state.dataSources = sources || [];
+        state.dataVersion = CURRENT_DATA_VERSION;
+        saveState();
+    } else if (needsMigration) {
+        // Automatically sync default sources with latest compendiums while preserving user toggles & custom beasts
+        const defaults = await fetchDefaultSources();
+        if (defaults && defaults.length > 0) {
+            defaults.forEach(defSrc => {
+                if (defSrc.id === 'homebrew') return;
+                const existingIdx = sources.findIndex(s => s.id === defSrc.id);
+                if (existingIdx >= 0) {
+                    // Preserve user enabled/disabled toggle
+                    defSrc.enabled = sources[existingIdx].enabled !== undefined ? sources[existingIdx].enabled : true;
+                    sources[existingIdx] = defSrc;
+                } else {
+                    const coreIdx = sources.findIndex(s => s.id === 'core-5e');
+                    if (coreIdx >= 0 && defSrc.id === 'core-5.5e') {
+                        sources.splice(coreIdx + 1, 0, defSrc);
+                    } else {
+                        sources.unshift(defSrc);
+                    }
+                }
+                SourceDB.put(defSrc);
+            });
+        }
+        state.dataSources = sources || [];
+        state.dataVersion = CURRENT_DATA_VERSION;
+        saveState();
+    } else {
+        state.dataSources = sources || [];
     }
-    state.dataSources = sources || [];
-    
-    // Ensure core-5.5e is loaded if not already present
-    if (!state.dataSources.some(s => s.id === 'core-5.5e')) {
-        let srd55Data = null;
-        try {
-            const res = await fetch('data/2024_beasts.json');
-            if (res.ok) {
-                srd55Data = await res.json();
-            }
-        } catch (e) {
-            // fetch fails on file:// protocol
-        }
-        
-        if (!srd55Data && window.DEFAULT_DATA && window.DEFAULT_DATA['core-5.5e']) {
-            srd55Data = window.DEFAULT_DATA['core-5.5e'];
-        }
-
-        if (srd55Data) {
-            const srd55Source = {
-                id: 'core-5.5e',
-                name: 'Core 5.5e Beasts (2024)',
-                filename: '2024_beasts.json',
-                isDefault: true,
-                enabled: true,
-                beasts: normalizeBeasts(srd55Data, 'core-5.5e', 'Core 5.5e SRD')
-            };
-            await SourceDB.put(srd55Source);
-            const coreIdx = state.dataSources.findIndex(s => s.id === 'core-5e');
-            if (coreIdx >= 0) {
-                state.dataSources.splice(coreIdx + 1, 0, srd55Source);
-            } else {
-                state.dataSources.unshift(srd55Source);
-            }
-        }
-    }
-
-    // Auto-migrate stored names/filenames to new standard naming convention
-    state.dataSources.forEach(src => {
-        if (src.id === 'core-5e') {
-            let modified = false;
-            if (src.name !== 'Core 5e Beasts (2014)') {
-                src.name = 'Core 5e Beasts (2014)';
-                modified = true;
-            }
-            if (src.filename !== '2014_beasts.json') {
-                src.filename = '2014_beasts.json';
-                modified = true;
-            }
-            if (modified) SourceDB.put(src);
-        } else if (src.id === 'core-5.5e') {
-            let modified = false;
-            if (src.name !== 'Core 5.5e Beasts (2024)') {
-                src.name = 'Core 5.5e Beasts (2024)';
-                modified = true;
-            }
-            if (src.filename !== '2024_beasts.json') {
-                src.filename = '2024_beasts.json';
-                modified = true;
-            }
-            if (modified) SourceDB.put(src);
-        } else if (src.id === 'homebrew' && src.filename !== 'homebrew.json') {
-            src.filename = 'homebrew.json';
-            SourceDB.put(src);
-        }
-    });
     
     // Ensure homebrew.json source is always present and active
     const hb = getHomebrewSource();
@@ -1674,13 +1644,17 @@ async function reloadDefaultSources() {
     const loaded = await fetchDefaultSources();
     if (loaded && loaded.length > 0) {
         loaded.forEach(newSrc => {
+            if (newSrc.id === 'homebrew') return;
             const idx = state.dataSources.findIndex(s => s.id === newSrc.id);
             if (idx >= 0) {
+                newSrc.enabled = state.dataSources[idx].enabled !== undefined ? state.dataSources[idx].enabled : true;
                 state.dataSources[idx] = newSrc;
             } else {
                 state.dataSources.unshift(newSrc);
             }
         });
+        state.dataVersion = CURRENT_DATA_VERSION;
+        saveState();
         renderDataSources();
         renderBeasts();
         alert(`Successfully reloaded ${loaded.length} default sources!`);
