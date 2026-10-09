@@ -156,6 +156,15 @@ function updateCharacter(updates) {
     renderApp();
 }
 
+function cleanText(str) {
+    if (typeof str !== 'string') return str;
+    return str
+        .replace(/Roth[ÃǸ][©]?/g, 'Rothé')
+        .replace(/roth[ÃǸ][©]?/g, 'rothé')
+        .replace(/Ã©/g, 'é')
+        .replace(/Ǹ/g, 'é');
+}
+
 function normalizeBeasts(rawArray, sourceId, sourceName) {
     if (!Array.isArray(rawArray)) return [];
     return rawArray.filter(b => b && b.name).map(b => {
@@ -163,12 +172,20 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
         const traits = b.traits || b.trait || [];
         return {
             ...b,
-            name: (b.name || '').trim(),
+            name: cleanText((b.name || '').trim()),
             cr: (b.cr !== undefined ? b.cr : '0').toString(),
             size: b.size || 'Medium',
             type: b.type || 'beast',
-            actions: Array.isArray(actions) ? actions : [],
-            traits: Array.isArray(traits) ? traits : [],
+            actions: Array.isArray(actions) ? actions.map(a => ({
+                ...a,
+                name: cleanText(a.name),
+                text: cleanText(a.text)
+            })) : [],
+            traits: Array.isArray(traits) ? traits.map(t => ({
+                ...t,
+                name: cleanText(t.name),
+                text: cleanText(t.text)
+            })) : [],
             _sourceId: sourceId,
             _sourceName: sourceName
         };
@@ -346,6 +363,34 @@ async function init() {
         });
         await SourceDB.put(hb);
         delete state.homebrew;
+        saveState();
+    }
+    
+    // Auto-heal any legacy mojibake/corrupted encodings in existing stored sources
+    let needsSourceSave = false;
+    (state.dataSources || []).forEach(src => {
+        if (Array.isArray(src.beasts)) {
+            let srcModified = false;
+            src.beasts.forEach(b => {
+                const oldName = b.name;
+                const newName = cleanText(b.name);
+                if (oldName !== newName) {
+                    b.name = newName;
+                    srcModified = true;
+                    // Migrate seen/favs across characters if name was repaired
+                    state.characters.forEach(c => {
+                        if (c.seen && c.seen[oldName]) { c.seen[newName] = true; delete c.seen[oldName]; }
+                        if (c.favs && c.favs[oldName]) { c.favs[newName] = true; delete c.favs[oldName]; }
+                    });
+                }
+            });
+            if (srcModified) {
+                SourceDB.put(src);
+                needsSourceSave = true;
+            }
+        }
+    });
+    if (needsSourceSave) {
         saveState();
     }
     

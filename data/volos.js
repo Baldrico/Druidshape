@@ -1,4 +1,4 @@
-﻿window.DEFAULT_VOLOS = [
+window.DEFAULT_VOLOS = [
   {
     "name": "Aurochs",
     "size": "Large",
@@ -120,7 +120,7 @@
     "environments": ["Underdark", "Urban"]
   },
   {
-    "name": "Deep RothÃ©",
+    "name": "Deep Rothé",
     "size": "Medium",
     "ac": 10,
     "hp": 13,
@@ -138,11 +138,11 @@
     "traits": [
       {
         "name": "Charge",
-        "text": "If the rothÃ© moves at least 20 feet straight toward a target and then hits it with a gore attack on the same turn, the target takes an extra 7 (2d6) piercing damage."
+        "text": "If the rothé moves at least 20 feet straight toward a target and then hits it with a gore attack on the same turn, the target takes an extra 7 (2d6) piercing damage."
       },
       {
         "name": "Innate Spellcasting",
-        "text": "The deep rothÃ©'s spellcasting ability is Charisma. It can innately cast dancing lights at will, requiring no components."
+        "text": "The deep rothé's spellcasting ability is Charisma. It can innately cast dancing lights at will, requiring no components."
       }
     ],
     "action": [
@@ -340,7 +340,7 @@
       },
       {
         "name": "Flyby",
-        "text": "The quetzalcoatlus doesnâ€™t provoke an opportunity attack when it flies out of an enemyâ€™s reach."
+        "text": "The quetzalcoatlus doesn’t provoke an opportunity attack when it flies out of an enemy’s reach."
       }
     ],
     "action": [
@@ -352,7 +352,7 @@
     "environments": ["Coastal", "Hill", "Mountain"]
   },
   {
-    "name": "RothÃ©",
+    "name": "Rothé",
     "size": "Large",
     "ac": 10,
     "hp": 15,
@@ -370,7 +370,7 @@
     "traits": [
       {
         "name": "Charge",
-        "text": "If the rothÃ© moves at least 20 feet straight toward a target and then hits it with a gore attack on the same turn, the target takes an extra 7 (2d6) piercing damage."
+        "text": "If the rothé moves at least 20 feet straight toward a target and then hits it with a gore attack on the same turn, the target takes an extra 7 (2d6) piercing damage."
       }
     ],
     "action": [
@@ -428,7 +428,7 @@
       },
       {
         "name": "Stench",
-        "text": "Any creature other than a stench kow that starts its turn within 5 feet of the stench kow must succeed on a DC 26 Constitution saving throw or be poisoned until the start of the creatureâ€™s next turn. On a successful saving throw, the creature is immune to the stench of all stench kows for 1 hour."
+        "text": "Any creature other than a stench kow that starts its turn within 5 feet of the stench kow must succeed on a DC 26 Constitution saving throw or be poisoned until the start of the creature’s next turn. On a successful saving throw, the creature is immune to the stench of all stench kows for 1 hour."
       }
     ],
     "action": [
@@ -458,7 +458,7 @@
     "traits": [
       {
         "name": "Pack Tactics",
-        "text": "The velociraptor has advantage on an attack roll against a creature if at least one of the velociraptorâ€™s allies is within 5 feet of the creature and the ally isnâ€™t incapacitated."
+        "text": "The velociraptor has advantage on an attack roll against a creature if at least one of the velociraptor’s allies is within 5 feet of the creature and the ally isn’t incapacitated."
       }
     ],
     "action": [
