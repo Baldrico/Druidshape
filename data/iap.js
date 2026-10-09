@@ -1,8 +1,0 @@
-﻿window.DEFAULT_IAP = [
-  "com.adpyke.druidshape.tip.nice",
-  "com.adpyke.druidshape.tip.kind",
-  "com.adpyke.druidshape.tip.generous",
-  "com.adpyke.druidshape.tip.amazing",
-  "com.adpyke.druidshape.tip.godzilla"
-]
-;

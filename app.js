@@ -270,15 +270,7 @@ async function fetchDefaultSources() {
             volosData = await volosRes.value.json();
         }
     } catch (e) {
-        console.warn("Network fetch not available, checking offline seed", e);
-    }
-
-    // 2. Fallback to bundled offline seed if fetch is unavailable (e.g. running from local file://)
-    if (!beastsData && window.DEFAULT_BEASTS) {
-        beastsData = window.DEFAULT_BEASTS;
-    }
-    if (!volosData && window.DEFAULT_VOLOS) {
-        volosData = window.DEFAULT_VOLOS;
+        console.warn("Network fetch not available", e);
     }
 
     if (beastsData) {
@@ -519,7 +511,7 @@ function setupEventListeners() {
     document.getElementById('btn-tip-jar').addEventListener('click', () => {
         const list = document.getElementById('tip-list');
         list.innerHTML = '';
-        const iapList = window.DEFAULT_IAP || [
+        const iapList = [
             "com.adpyke.druidshape.tip.nice",
             "com.adpyke.druidshape.tip.kind",
             "com.adpyke.druidshape.tip.generous",
