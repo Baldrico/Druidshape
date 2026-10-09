@@ -171,7 +171,7 @@ function cleanText(str) {
         .replace(/\?T/g, "'")
         .replace(/\?\"/g, "-")
         .replace(/[\u2018\u2019]/g, "'")
-        .replace(/[\u2013]/g, "-")
+        .replace(/[\u2013\u2212]/g, "-")
         .replace(/(?<!\p{L})Deep\s+Roth(e)?('s)?(?!\p{L})/gui, (m, e, s) => {
             const isLower = m[0] === 'd';
             return (isLower ? 'deep rothé' : 'Deep Rothé') + (s || '');
@@ -186,6 +186,8 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
     return rawArray.filter(b => b && b.name).map(b => {
         const actions = b.actions || b.action || [];
         const traits = b.traits || b.trait || [];
+        const bonusActions = b.bonus_actions || b.bonus_action || [];
+        const reactions = b.reactions || b.reaction || [];
         const normalized = {
             ...b,
             name: cleanText((b.name || '').trim()),
@@ -204,11 +206,23 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
                 name: cleanText(t.name),
                 text: cleanText(t.text)
             })) : [],
+            bonus_actions: Array.isArray(bonusActions) ? bonusActions.map(ba => ({
+                ...ba,
+                name: cleanText(ba.name),
+                text: cleanText(ba.text)
+            })) : [],
+            reactions: Array.isArray(reactions) ? reactions.map(r => ({
+                ...r,
+                name: cleanText(r.name),
+                text: cleanText(r.text)
+            })) : [],
             _sourceId: sourceId,
             _sourceName: sourceName
         };
         delete normalized.action;
         delete normalized.trait;
+        delete normalized.bonus_action;
+        delete normalized.reaction;
         return normalized;
     });
 }
@@ -255,12 +269,14 @@ async function fetchDefaultSources() {
     const loaded = [];
     let beastsData = null;
     let volosData = null;
+    let srd55Data = null;
 
     // 1. Attempt to fetch from JSON files (available when running on a web server or GitHub Pages)
     try {
-        const [beastsRes, volosRes] = await Promise.allSettled([
+        const [beastsRes, volosRes, srd55Res] = await Promise.allSettled([
             fetch('data/beasts.json'),
-            fetch('data/volos.json')
+            fetch('data/volos.json'),
+            fetch('data/core_5_5e_srd_beasts.json')
         ]);
         
         if (beastsRes.status === 'fulfilled' && beastsRes.value.ok) {
@@ -268,6 +284,9 @@ async function fetchDefaultSources() {
         }
         if (volosRes.status === 'fulfilled' && volosRes.value.ok) {
             volosData = await volosRes.value.json();
+        }
+        if (srd55Res.status === 'fulfilled' && srd55Res.value.ok) {
+            srd55Data = await srd55Res.value.json();
         }
     } catch (e) {
         console.warn("Network fetch not available", e);
@@ -284,6 +303,19 @@ async function fetchDefaultSources() {
         };
         await SourceDB.put(coreSource);
         loaded.push(coreSource);
+    }
+
+    if (srd55Data) {
+        const srd55Source = {
+            id: 'core-5.5e',
+            name: 'Core 5.5e SRD Beasts',
+            filename: 'core_5_5e_srd_beasts.json',
+            isDefault: true,
+            enabled: true,
+            beasts: normalizeBeasts(srd55Data, 'core-5.5e', 'Core 5.5e SRD')
+        };
+        await SourceDB.put(srd55Source);
+        loaded.push(srd55Source);
     }
 
     if (volosData) {
@@ -363,6 +395,33 @@ async function init() {
         sources = await fetchDefaultSources();
     }
     state.dataSources = sources || [];
+    
+    // Ensure core-5.5e is loaded if not already present
+    if (!state.dataSources.some(s => s.id === 'core-5.5e')) {
+        try {
+            const res = await fetch('data/core_5_5e_srd_beasts.json');
+            if (res.ok) {
+                const data = await res.json();
+                const srd55Source = {
+                    id: 'core-5.5e',
+                    name: 'Core 5.5e SRD Beasts',
+                    filename: 'core_5_5e_srd_beasts.json',
+                    isDefault: true,
+                    enabled: true,
+                    beasts: normalizeBeasts(data, 'core-5.5e', 'Core 5.5e SRD')
+                };
+                await SourceDB.put(srd55Source);
+                const coreIdx = state.dataSources.findIndex(s => s.id === 'core-5e');
+                if (coreIdx >= 0) {
+                    state.dataSources.splice(coreIdx + 1, 0, srd55Source);
+                } else {
+                    state.dataSources.unshift(srd55Source);
+                }
+            }
+        } catch (e) {
+            console.warn("Could not auto-fetch core-5.5e source", e);
+        }
+    }
     
     // Ensure Homebrew.json source is always present and active
     const hb = getHomebrewSource();
@@ -886,8 +945,10 @@ function formatSenses(beast) {
 function formatActionText(text) {
     if (!text) return '';
     return cleanText(text)
-        .replace(/(?<!\*)\b(Melee or Ranged|Melee|Ranged)( Weapon| Spell)? Attack:/g, '*$1$2 Attack:*')
+        .replace(/(?<!\*)\b(Melee or Ranged|Melee|Ranged)( Weapon| Spell)? Attack( Roll)?:/g, '*$1$2 Attack$3:*')
         .replace(/(?<!\*)\bHit:/g, '*Hit:*')
+        .replace(/(?<!\*)\bTrigger:/g, '*Trigger:*')
+        .replace(/(?<!\*)\bResponse:/g, '*Response:*')
         .replace(/(\d+d\d+)\s*([+-])\s*(\d+)/g, '$1 $2 $3');
 }
 
@@ -930,8 +991,9 @@ function formatBeastMarkdown(beast) {
     md += `**Challenge** :: ${crClean}${xp ? ` (${xp} XP)` : ''}\n`;
     md += `___\n`;
     
-    if (beast.traits && beast.traits.length > 0) {
-        beast.traits.forEach(t => {
+    const traits = beast.traits || beast.trait || [];
+    if (traits.length > 0) {
+        traits.forEach(t => {
             md += `***${cleanText(t.name)}.*** ${cleanText(t.text)}\n\n`;
         });
         md += `___\n`;
@@ -942,6 +1004,22 @@ function formatBeastMarkdown(beast) {
         md += `### Actions\n`;
         actions.forEach(a => {
             md += `***${cleanText(a.name)}.*** ${formatActionText(a.text)}\n\n`;
+        });
+    }
+
+    const bonusActions = beast.bonus_actions || [];
+    if (bonusActions.length > 0) {
+        md += `### Bonus Actions\n`;
+        bonusActions.forEach(ba => {
+            md += `***${cleanText(ba.name)}.*** ${formatActionText(ba.text)}\n\n`;
+        });
+    }
+
+    const reactions = beast.reactions || [];
+    if (reactions.length > 0) {
+        md += `### Reactions\n`;
+        reactions.forEach(r => {
+            md += `***${cleanText(r.name)}.*** ${formatActionText(r.text)}\n\n`;
         });
     }
     
@@ -1035,6 +1113,15 @@ function getModifier(score) {
     return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
+function formatStatBlockText(text) {
+    if (!text) return '';
+    return cleanText(text)
+        .replace(/(?<!\*)\b(Melee or Ranged|Melee|Ranged)( Weapon| Spell)? Attack( Roll)?:/g, '<em>$1$2 Attack$3:</em>')
+        .replace(/\bHit:/g, '<em>Hit:</em>')
+        .replace(/\bTrigger:/g, '<em>Trigger:</em>')
+        .replace(/\bResponse:/g, '<em>Response:</em>');
+}
+
 function renderStatBlock(beast) {
     const sb = document.getElementById('stat-block-content');
     
@@ -1045,7 +1132,7 @@ function renderStatBlock(beast) {
             ${arr.map(a => `
                 <div class="trait-item">
                     <span class="trait-title">${cleanText(a.name)}.</span> 
-                    ${cleanText(a.text)}
+                    ${formatStatBlockText(a.text)}
                     ${a.roll ? `<br><small>Roll: ${a.roll}</small>` : ''}
                     ${a.damage ? `<br><small>Damage: ${a.damage}</small>` : ''}
                 </div>
@@ -1109,6 +1196,8 @@ function renderStatBlock(beast) {
             
             ${renderArray(beast.traits, 'Traits')}
             ${renderArray(beast.actions || beast.action, 'Actions')}
+            ${renderArray(beast.bonus_actions, 'Bonus Actions')}
+            ${renderArray(beast.reactions, 'Reactions')}
         </div>
     `;
 }
@@ -1430,7 +1519,7 @@ async function reloadDefaultSources() {
         renderBeasts();
         alert(`Successfully reloaded ${loaded.length} default sources!`);
     } else {
-        alert("Could not fetch default JSON files automatically. If running directly from the filesystem (file://), use 'Import JSON' to select beasts.json or volos.json from your data folder.");
+        alert("Could not fetch default JSON files automatically. If running directly from the filesystem (file://), use 'Import JSON' to select beasts.json, core_5_5e_srd_beasts.json, or volos.json from your data folder.");
     }
 }
 
