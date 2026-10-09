@@ -104,7 +104,6 @@ let state = {
     ],
     selectedCharacterId: 1,
     dataSources: [],
-    homebrew: [],
     filters: {
         search: '',
         seenOnly: false,
@@ -176,6 +175,24 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
     });
 }
 
+function getHomebrewSource() {
+    let hbSource = (state.dataSources || []).find(s => s.id === 'homebrew');
+    if (!hbSource) {
+        hbSource = {
+            id: 'homebrew',
+            name: 'Homebrew',
+            filename: 'Homebrew.json',
+            isDefault: true,
+            isHomebrew: true,
+            enabled: true,
+            beasts: []
+        };
+        state.dataSources.push(hbSource);
+        SourceDB.put(hbSource);
+    }
+    return hbSource;
+}
+
 function getActiveBeasts() {
     const active = [];
     (state.dataSources || []).forEach(src => {
@@ -183,9 +200,6 @@ function getActiveBeasts() {
             active.push(...src.beasts);
         }
     });
-    if (Array.isArray(state.homebrew)) {
-        active.push(...state.homebrew);
-    }
     return active;
 }
 
@@ -196,9 +210,6 @@ function getAllAvailableBeasts() {
             all.push(...src.beasts);
         }
     });
-    if (Array.isArray(state.homebrew)) {
-        all.push(...state.homebrew);
-    }
     return all;
 }
 
@@ -258,6 +269,19 @@ async function fetchDefaultSources() {
         loaded.push(volosSource);
     }
 
+    // Always include a blank Homebrew.json source
+    const hbSource = {
+        id: 'homebrew',
+        name: 'Homebrew',
+        filename: 'Homebrew.json',
+        isDefault: true,
+        isHomebrew: true,
+        enabled: true,
+        beasts: []
+    };
+    await SourceDB.put(hbSource);
+    loaded.push(hbSource);
+
     return loaded;
 }
 
@@ -309,6 +333,21 @@ async function init() {
         sources = await fetchDefaultSources();
     }
     state.dataSources = sources || [];
+    
+    // Ensure Homebrew.json source is always present and active
+    const hb = getHomebrewSource();
+    if (Array.isArray(state.homebrew) && state.homebrew.length > 0) {
+        state.homebrew.forEach(b => {
+            if (!hb.beasts.some(ex => ex.name === b.name)) {
+                b._sourceId = 'homebrew';
+                b._sourceName = 'Homebrew';
+                hb.beasts.push(b);
+            }
+        });
+        await SourceDB.put(hb);
+        delete state.homebrew;
+        saveState();
+    }
     
     renderApp();
 }
@@ -373,10 +412,6 @@ function setupEventListeners() {
     });
     els.sourceUploadInput.addEventListener('change', handleSourceUpload);
     document.getElementById('btn-reset-sources').addEventListener('click', reloadDefaultSources);
-
-    document.getElementById('btn-export-homebrew').addEventListener('click', exportHomebrew);
-    document.getElementById('btn-import-homebrew').addEventListener('click', () => document.getElementById('import-file-input').click());
-    document.getElementById('import-file-input').addEventListener('change', importHomebrew);
     
     document.getElementById('btn-tip-jar').addEventListener('click', () => {
         const list = document.getElementById('tip-list');
@@ -803,11 +838,13 @@ function renderStatBlock(beast) {
     `;
 }
 
-// Homebrew
+// Homebrew Management (Stores directly into Homebrew.json Data Source)
 function renderHomebrewList() {
     els.homebrewList.innerHTML = '';
+    const hbSource = getHomebrewSource();
+    const beasts = hbSource.beasts || [];
     
-    if (state.homebrew.length === 0) {
+    if (beasts.length === 0) {
         els.homebrewList.innerHTML = `
             <div id="empty-homebrew" class="empty-state">
                 <span class="material-icons empty-icon">pets</span>
@@ -818,7 +855,7 @@ function renderHomebrewList() {
         return;
     }
 
-    state.homebrew.forEach((b, index) => {
+    beasts.forEach((b, index) => {
         const item = document.createElement('div');
         item.className = 'list-item';
         
@@ -846,6 +883,7 @@ function openHomebrewEditor(index = -1) {
     editingHomebrewIndex = index;
     const modal = els.modalHomebrew;
     const copySelect = document.getElementById('hb-copy-from');
+    const hbSource = getHomebrewSource();
     
     // Populate copy select
     copySelect.innerHTML = '<option value="">-- Copy from existing --</option>';
@@ -856,9 +894,9 @@ function openHomebrewEditor(index = -1) {
         copySelect.appendChild(opt);
     });
 
-    if (index >= 0) {
+    if (index >= 0 && hbSource.beasts && hbSource.beasts[index]) {
         document.getElementById('homebrew-editor-title').textContent = 'Edit Homebrew';
-        populateHomebrewForm(state.homebrew[index]);
+        populateHomebrewForm(hbSource.beasts[index]);
     } else {
         document.getElementById('homebrew-editor-title').textContent = 'Add Homebrew';
         populateHomebrewForm({});
@@ -900,7 +938,7 @@ function populateHomebrewForm(b) {
     document.getElementById('hb-actions').value = b.actions ? JSON.stringify(b.actions, null, 2) : '';
 }
 
-function saveHomebrew() {
+async function saveHomebrew() {
     const name = document.getElementById('hb-name').value.trim();
     if (!name) {
         alert("Name is required");
@@ -931,24 +969,30 @@ function saveHomebrew() {
         skills: document.getElementById('hb-skills').value,
         traits: parseJSON(document.getElementById('hb-traits').value),
         actions: parseJSON(document.getElementById('hb-actions').value),
-        isHomebrew: true
+        isHomebrew: true,
+        _sourceId: 'homebrew',
+        _sourceName: 'Homebrew'
     };
+
+    const hbSource = getHomebrewSource();
+    if (!Array.isArray(hbSource.beasts)) hbSource.beasts = [];
 
     if (editingHomebrewIndex >= 0) {
         // If name changed, migrate seen/fav
-        const oldName = state.homebrew[editingHomebrewIndex].name;
-        if (oldName !== name) {
+        const oldName = hbSource.beasts[editingHomebrewIndex] ? hbSource.beasts[editingHomebrewIndex].name : '';
+        if (oldName && oldName !== name) {
             state.characters.forEach(c => {
                 if (c.seen[oldName]) { c.seen[name] = true; delete c.seen[oldName]; }
                 if (c.favs[oldName]) { c.favs[name] = true; delete c.favs[oldName]; }
             });
+            saveState();
         }
-        state.homebrew[editingHomebrewIndex] = beast;
+        hbSource.beasts[editingHomebrewIndex] = beast;
     } else {
-        state.homebrew.push(beast);
+        hbSource.beasts.push(beast);
     }
 
-    saveState();
+    await SourceDB.put(hbSource);
     renderApp();
     closeModal(els.modalHomebrew);
 }
@@ -958,56 +1002,25 @@ function editHomebrew(index, event) {
     openHomebrewEditor(index);
 }
 
-function deleteHomebrew(index, event) {
+async function deleteHomebrew(index, event) {
     event.stopPropagation();
+    const hbSource = getHomebrewSource();
+    if (!hbSource || !hbSource.beasts || !hbSource.beasts[index]) return;
+    
     if (confirm("Are you sure you want to delete this homebrew beast?")) {
-        const name = state.homebrew[index].name;
-        state.homebrew.splice(index, 1);
+        const name = hbSource.beasts[index].name;
+        hbSource.beasts.splice(index, 1);
         
         // Clean up refs
         state.characters.forEach(c => {
             delete c.seen[name];
             delete c.favs[name];
         });
-        
         saveState();
+        
+        await SourceDB.put(hbSource);
         renderApp();
     }
-}
-
-// Import / Export
-function exportHomebrew() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.homebrew, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "druidshape_homebrew.json");
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
-}
-
-function importHomebrew(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const imported = JSON.parse(e.target.result);
-            if (Array.isArray(imported)) {
-                state.homebrew = [...state.homebrew, ...imported];
-                saveState();
-                renderApp();
-                alert("Homebrew imported successfully!");
-            } else {
-                alert("Invalid format. Expected a JSON array.");
-            }
-        } catch (err) {
-            alert("Error parsing JSON file.");
-        }
-        event.target.value = ''; // Reset
-    };
-    reader.readAsText(file);
 }
 
 // ============================================================
@@ -1046,7 +1059,7 @@ function renderDataSources() {
                 <div class="source-details">
                     <div class="source-title-row">
                         <span class="source-title">${src.name}</span>
-                        <span class="source-badge ${src.isDefault ? 'default' : 'custom'}">${src.isDefault ? 'Default' : 'Custom'}</span>
+                        <span class="source-badge ${src.id === 'homebrew' ? 'custom' : (src.isDefault ? 'default' : 'custom')}">${src.id === 'homebrew' ? 'Homebrew' : (src.isDefault ? 'Default' : 'Custom')}</span>
                     </div>
                     <div class="source-meta">
                         ${src.beasts ? src.beasts.length : 0} beasts • ${src.filename || 'Custom JSON'}
@@ -1061,7 +1074,7 @@ function renderDataSources() {
                 <button class="icon-button" title="Export Source JSON" onclick="exportSource('${src.id}', event)">
                     <span class="material-icons">download</span>
                 </button>
-                <button class="icon-button source-btn-delete" title="Delete Source" onclick="deleteSource('${src.id}', event)">
+                <button class="icon-button source-btn-delete" title="${src.id === 'homebrew' ? 'Clear Homebrew Beasts' : 'Delete Source'}" onclick="deleteSource('${src.id}', event)">
                     <span class="material-icons">delete_outline</span>
                 </button>
             </div>
@@ -1084,6 +1097,16 @@ async function deleteSource(sourceId, event) {
     const src = state.dataSources.find(s => s.id === sourceId);
     if (!src) return;
     
+    if (src.id === 'homebrew') {
+        const count = src.beasts ? src.beasts.length : 0;
+        if (!confirm(`Clear all ${count} custom beasts from Homebrew.json?`)) return;
+        src.beasts = [];
+        await SourceDB.put(src);
+        renderDataSources();
+        renderApp();
+        return;
+    }
+
     const confirmMsg = src.isDefault
         ? `Remove default source "${src.name}"? You can restore it anytime with "Reload Defaults".`
         : `Are you sure you want to delete the source "${src.name}" (${src.beasts ? src.beasts.length : 0} beasts)?`;
