@@ -315,7 +315,7 @@ async function fetchDefaultSources() {
     if (srd55Data) {
         const srd55Source = {
             id: 'core-5.5e',
-            name: 'Core 5.5e SRD Beasts',
+            name: 'Core 5.5e Beasts (2024)',
             filename: '2024_beasts.json',
             isDefault: true,
             enabled: true,
@@ -422,7 +422,7 @@ async function init() {
         if (srd55Data) {
             const srd55Source = {
                 id: 'core-5.5e',
-                name: 'Core 5.5e SRD Beasts',
+                name: 'Core 5.5e Beasts (2024)',
                 filename: '2024_beasts.json',
                 isDefault: true,
                 enabled: true,
@@ -438,14 +438,22 @@ async function init() {
         }
     }
 
-    // Auto-migrate stored filenames to new standard naming convention
+    // Auto-migrate stored names/filenames to new standard naming convention
     state.dataSources.forEach(src => {
         if (src.id === 'core-5e' && src.filename !== '2014_beasts.json') {
             src.filename = '2014_beasts.json';
             SourceDB.put(src);
-        } else if (src.id === 'core-5.5e' && src.filename !== '2024_beasts.json') {
-            src.filename = '2024_beasts.json';
-            SourceDB.put(src);
+        } else if (src.id === 'core-5.5e') {
+            let modified = false;
+            if (src.name !== 'Core 5.5e Beasts (2024)') {
+                src.name = 'Core 5.5e Beasts (2024)';
+                modified = true;
+            }
+            if (src.filename !== '2024_beasts.json') {
+                src.filename = '2024_beasts.json';
+                modified = true;
+            }
+            if (modified) SourceDB.put(src);
         } else if (src.id === 'homebrew' && src.filename !== 'homebrew.json') {
             src.filename = 'homebrew.json';
             SourceDB.put(src);
