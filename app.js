@@ -849,44 +849,111 @@ function deleteCharacter(id, event) {
 // Beast Details
 let currentDetailBeast = null;
 
-function formatBeastPlainText(beast) {
+const CR_XP_MAP = {
+    '0': '10',
+    '1/8': '25',
+    '1/4': '50',
+    '1/2': '100',
+    '1': '200',
+    '2': '450',
+    '3': '700',
+    '4': '1,100',
+    '5': '1,800',
+    '6': '2,300',
+    '7': '2,900',
+    '8': '3,900',
+    '9': '5,000',
+    '10': '5,900'
+};
+
+function formatSpeed(beast) {
+    if (!beast) return '30 ft.';
+    if (typeof beast.speed === 'string' && beast.speed.includes('ft')) {
+        return beast.speed;
+    }
+    const parts = [];
+    if (beast.speed !== undefined && beast.speed !== null && beast.speed !== '') {
+        parts.push(`${beast.speed} ft.`);
+    }
+    if (beast.burrow) parts.push(`burrow ${beast.burrow} ft.`);
+    if (beast.climb) parts.push(`climb ${beast.climb} ft.`);
+    if (beast.fly) parts.push(`fly ${beast.fly} ft.${beast.flyDetails ? ` (${beast.flyDetails})` : ''}`);
+    if (beast.swim) parts.push(`swim ${beast.swim} ft.`);
+    return parts.length > 0 ? parts.join(', ') : `${beast.speed || 30} ft.`;
+}
+
+function formatSenses(beast) {
+    if (!beast) return 'passive Perception 10';
+    let s = beast.senses ? cleanText(beast.senses) : '';
+    const passiveText = `passive Perception ${beast.passive || 10}`;
+    if (!s) return passiveText;
+    if (s.toLowerCase().includes('passive perception')) return s;
+    return `${s}, ${passiveText}`;
+}
+
+function formatActionText(text) {
+    if (!text) return '';
+    return cleanText(text)
+        .replace(/(?<!\*)\b(Melee or Ranged|Melee|Ranged)( Weapon| Spell)? Attack:/g, '*$1$2 Attack:*')
+        .replace(/(?<!\*)\bHit:/g, '*Hit:*')
+        .replace(/(\d+d\d+)\s*([+-])\s*(\d+)/g, '$1 $2 $3');
+}
+
+function formatBeastMarkdown(beast) {
     if (!beast) return '';
-    let text = `## ${cleanText(beast.name)}\n`;
-    text += `*${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}*\n\n`;
-    text += `**AC** ${beast.ac}\n`;
-    const hpRoll = beast.hd || beast.roll;
-    text += `**HP** ${beast.hp}${hpRoll ? ` (${hpRoll})` : ''}\n`;
-    text += `**Speed** ${beast.speed}\n\n`;
-    text += `|STR|DEX|CON|INT|WIS|CHA|\n`;
-    text += `|:---:|:---:|:---:|:---:|:---:|:---:|\n`;
-    text += `|${beast.str || 10} (${getModifier(beast.str || 10)})|${beast.dex || 10} (${getModifier(beast.dex || 10)})|${beast.con || 10} (${getModifier(beast.con || 10)})|${beast.int || 10} (${getModifier(beast.int || 10)})|${beast.wis || 10} (${getModifier(beast.wis || 10)})|${beast.cha || 10} (${getModifier(beast.cha || 10)})|\n\n`;
-    if (beast.saves) text += `**Saving Throws** ${cleanText(beast.saves)}\n`;
-    if (beast.skills) text += `**Skills** ${cleanText(beast.skills)}\n`;
-    if (beast.damage_vulnerabilities) text += `**Damage Vulnerabilities** ${beast.damage_vulnerabilities}\n`;
-    if (beast.damage_resistances) text += `**Damage Resistances** ${beast.damage_resistances}\n`;
-    if (beast.damage_immunities) text += `**Damage Immunities** ${beast.damage_immunities}\n`;
-    if (beast.condition_immunities) text += `**Condition Immunities** ${beast.condition_immunities}\n`;
-    if (beast.senses) text += `**Senses** ${cleanText(beast.senses)}\n`;
-    if (beast.languages) text += `**Languages** ${cleanText(beast.languages)}\n`;
-    text += `**CR** ${beast.cr}\n\n`;
+    
+    let md = `## ${cleanText(beast.name)}  \n`;
+    
+    const size = beast.size ? `${beast.size} ` : '';
+    const type = beast.type || 'beast';
+    const align = beast.alignment || 'unaligned';
+    md += `*${size}${type}, ${align}*  \n`;
+    md += `___\n`;
+    
+    md += `**Armor Class** :: ${beast.ac}\n`;
+    
+    const roll = beast.hd || (beast.roll ? beast.roll.replace(/([+-])/g, ' $1 ').replace(/\s+/g, ' ') : '');
+    md += `**Hit Points** :: ${beast.hp}${roll ? ` (${roll})` : ''}\n`;
+    
+    md += `**Speed** :: ${formatSpeed(beast)}\n`;
+    md += `___\n`;
+    
+    md += `|  STR  |  DEX  |  CON  |  INT  |  WIS  |  CHA  |\n`;
+    md += `|:-----:|:-----:|:-----:|:-----:|:-----:|:-----:|\n`;
+    md += `|  ${beast.str || 10} (${getModifier(beast.str || 10)})  |  ${beast.dex || 10} (${getModifier(beast.dex || 10)})  |  ${beast.con || 10} (${getModifier(beast.con || 10)})  |  ${beast.int || 10} (${getModifier(beast.int || 10)})  |  ${beast.wis || 10} (${getModifier(beast.wis || 10)})  |  ${beast.cha || 10} (${getModifier(beast.cha || 10)})  |\n`;
+    md += `___\n`;
+    
+    if (beast.saves) md += `**Saving Throws** :: ${cleanText(beast.saves)}\n`;
+    if (beast.skills) md += `**Skills** :: ${cleanText(beast.skills)}\n`;
+    if (beast.damage_vulnerabilities) md += `**Damage Vulnerabilities** :: ${beast.damage_vulnerabilities}\n`;
+    if (beast.damage_resistances) md += `**Damage Resistances** :: ${beast.damage_resistances}\n`;
+    if (beast.damage_immunities) md += `**Damage Immunities** :: ${beast.damage_immunities}\n`;
+    if (beast.condition_immunities) md += `**Condition Immunities** :: ${beast.condition_immunities}\n`;
+    
+    md += `**Senses** :: ${formatSenses(beast)}\n`;
+    md += `**Languages** :: ${beast.languages || '—'}\n`;
+    
+    const crClean = (beast.cr || '0').toString().trim();
+    const xp = CR_XP_MAP[crClean];
+    md += `**Challenge** :: ${crClean}${xp ? ` (${xp} XP)` : ''}\n`;
+    md += `___\n`;
     
     if (beast.traits && beast.traits.length > 0) {
         beast.traits.forEach(t => {
-            text += `***${cleanText(t.name)}.*** ${cleanText(t.text)}\n\n`;
+            md += `***${cleanText(t.name)}.*** ${cleanText(t.text)}\n\n`;
         });
+        md += `___\n`;
     }
     
     const actions = beast.actions || beast.action || [];
     if (actions.length > 0) {
-        text += `### Actions\n`;
+        md += `### Actions\n`;
         actions.forEach(a => {
-            text += `***${cleanText(a.name)}.*** ${cleanText(a.text)}`;
-            if (a.roll) text += ` (Roll: ${a.roll})`;
-            if (a.damage) text += ` (Damage: ${a.damage})`;
-            text += `\n\n`;
+            md += `***${cleanText(a.name)}.*** ${formatActionText(a.text)}\n\n`;
         });
     }
-    return text.trim();
+    
+    return md.trim();
 }
 
 function selectStatBlockText() {
@@ -900,11 +967,8 @@ function selectStatBlockText() {
 }
 
 async function copyStatBlockText(beast) {
-    const sel = window.getSelection();
-    let textToCopy = sel ? sel.toString().trim() : '';
-    if (!textToCopy && beast) {
-        textToCopy = formatBeastPlainText(beast);
-    }
+    if (!beast) return;
+    const textToCopy = formatBeastMarkdown(beast);
     if (textToCopy) {
         try {
             await navigator.clipboard.writeText(textToCopy);
@@ -1001,13 +1065,13 @@ function renderStatBlock(beast) {
     sb.innerHTML = `
         <div class="details-container">
             <div class="beast-title">${cleanText(beast.name)}</div>
-            <div class="beast-subtitle">${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}</div>
+            <div class="beast-subtitle">${beast.size} ${beast.type || 'beast'}, ${beast.alignment || 'unaligned'}</div>
             
             <div class="stat-divider"></div>
             
             <div class="attribute-line"><span class="attribute-label">Armor Class</span> ${beast.ac}</div>
-            <div class="attribute-line"><span class="attribute-label">Hit Points</span> ${beast.hp} ${beast.hd ? `(${beast.hd})` : (beast.roll ? `(${beast.roll})` : '')}</div>
-            <div class="attribute-line"><span class="attribute-label">Speed</span> ${beast.speed}</div>
+            <div class="attribute-line"><span class="attribute-label">Hit Points</span> ${beast.hp} ${beast.hd ? `(${beast.hd})` : (beast.roll ? `(${beast.roll.replace(/([+-])/g, ' $1 ').replace(/\s+/g, ' ')})` : '')}</div>
+            <div class="attribute-line"><span class="attribute-label">Speed</span> ${formatSpeed(beast)}</div>
             
             <div class="stat-divider"></div>
             
@@ -1044,9 +1108,9 @@ function renderStatBlock(beast) {
             ${beast.damage_resistances ? `<div class="attribute-line"><span class="attribute-label">Damage Resistances</span> ${beast.damage_resistances}</div>` : ''}
             ${beast.damage_immunities ? `<div class="attribute-line"><span class="attribute-label">Damage Immunities</span> ${beast.damage_immunities}</div>` : ''}
             ${beast.condition_immunities ? `<div class="attribute-line"><span class="attribute-label">Condition Immunities</span> ${beast.condition_immunities}</div>` : ''}
-            ${beast.senses ? `<div class="attribute-line"><span class="attribute-label">Senses</span> ${cleanText(beast.senses)}</div>` : ''}
-            ${beast.languages ? `<div class="attribute-line"><span class="attribute-label">Languages</span> ${cleanText(beast.languages)}</div>` : ''}
-            <div class="attribute-line"><span class="attribute-label">Challenge</span> ${beast.cr}</div>
+            <div class="attribute-line"><span class="attribute-label">Senses</span> ${cleanText(formatSenses(beast))}</div>
+            <div class="attribute-line"><span class="attribute-label">Languages</span> ${beast.languages ? cleanText(beast.languages) : '—'}</div>
+            <div class="attribute-line"><span class="attribute-label">Challenge</span> ${beast.cr}${CR_XP_MAP[(beast.cr || '0').toString().trim()] ? ` (${CR_XP_MAP[(beast.cr || '0').toString().trim()]} XP)` : ''}</div>
             <div class="attribute-line"><span class="attribute-label">Source</span> ${beast._sourceName || beast.source || 'Core 5e'}</div>
             
             <div class="stat-divider"></div>
