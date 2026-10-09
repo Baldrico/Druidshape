@@ -543,7 +543,12 @@ function setupEventListeners() {
     const charUploadInput = document.getElementById('character-upload-input');
     const btnExportChar = document.getElementById('btn-export-character');
     if (btnImportChar && charUploadInput) {
-        btnImportChar.addEventListener('click', () => charUploadInput.click());
+        btnImportChar.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                charUploadInput.click();
+            }
+        });
         charUploadInput.addEventListener('change', handleCharacterUpload);
     }
     if (btnExportChar) {
@@ -1032,6 +1037,7 @@ async function handleCharacterUpload(event) {
 window.exportCharacter = exportCharacter;
 window.deleteCharacter = deleteCharacter;
 window.addCharacter = addCharacter;
+window.handleCharacterUpload = handleCharacterUpload;
 
 // Beast Details
 let currentDetailBeast = null;
@@ -1721,6 +1727,8 @@ async function handleSourceUpload(event) {
         alert(`Successfully imported ${importedCount} data source(s)!`);
     }
 }
+
+window.handleSourceUpload = handleSourceUpload;
 
 // Start app
 document.addEventListener('DOMContentLoaded', init);

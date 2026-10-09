@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    <link rel="stylesheet" href="style.css?v=2.0.0">
+    <link rel="stylesheet" href="style.css?v=2.0.1">
 </head>
 <body class="theme-light">
     <div id="app">
@@ -142,15 +142,15 @@
                         <button id="btn-add-character" class="btn btn-primary">Add</button>
                     </div>
                     <div class="character-modal-actions">
-                        <button id="btn-import-character" class="btn" title="Import Character JSON">
+                        <label for="character-upload-input" id="btn-import-character" class="btn" title="Import Character JSON" tabindex="0" role="button" style="cursor: pointer;">
                             <span class="material-icons" style="font-size: 18px;">upload_file</span>
                             <span>Import Character</span>
-                        </button>
-                        <button id="btn-export-character" class="btn" title="Export Selected Character">
+                        </label>
+                        <input type="file" id="character-upload-input" style="display: none;" accept=".json" multiple onchange="handleCharacterUpload(event)">
+                        <button id="btn-export-character" class="btn" title="Export Selected Character" onclick="exportCharacter(state.selectedCharacterId, event)">
                             <span class="material-icons" style="font-size: 18px;">download</span>
                             <span>Export Character</span>
                         </button>
-                        <input type="file" id="character-upload-input" style="display: none;" accept=".json" multiple>
                     </div>
                 </div>
             </div>
@@ -333,15 +333,15 @@
                             Toggle sources to control which beasts appear in your compendium, or load custom .json files.
                         </p>
                         <div class="sources-action-buttons">
-                            <button id="btn-import-source" class="btn btn-primary">
+                            <label for="source-upload-input" id="btn-import-source" class="btn btn-primary" style="cursor: pointer;" tabindex="0" role="button">
                                 <span class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:4px;">upload_file</span>
                                 Import JSON
-                            </button>
+                            </label>
                             <button id="btn-reset-sources" class="btn">
                                 <span class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:4px;">refresh</span>
                                 Reload Defaults
                             </button>
-                            <input type="file" id="source-upload-input" style="display: none;" accept=".json" multiple>
+                            <input type="file" id="source-upload-input" style="display: none;" accept=".json" multiple onchange="handleSourceUpload(event)">
                         </div>
                     </div>
                     <div id="sources-list-container" class="sources-list-container">
@@ -354,8 +354,8 @@
     </div>
 
     <!-- Fallback default data for local file:// usage -->
-    <script src="data/default_data.js?v=2.0.0"></script>
+    <script src="data/default_data.js?v=2.0.1"></script>
     <!-- App logic -->
-    <script src="app.js?v=2.0.0"></script>
+    <script src="app.js?v=2.0.1"></script>
 </body>
 </html>
