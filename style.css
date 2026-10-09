@@ -643,6 +643,43 @@ body.fullscreen-mode .device-frame {
   font-weight: 700;
 }
 
+/* Ability Scores Table */
+.stat-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+.stat-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  table-layout: fixed;
+}
+.stat-table th {
+  width: 16.666%;
+  color: var(--text-color-accent);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 2px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.stat-table td {
+  width: 16.666%;
+  font-size: 13px;
+  color: var(--text-color);
+  padding: 4px 2px;
+  text-align: center;
+  white-space: nowrap;
+}
+@media (max-width: 360px) {
+  .stat-table th,
+  .stat-table td {
+    font-size: 11px;
+    padding: 3px 1px;
+  }
+}
+
 /* Ability Scores 6-Grid */
 .stats-grid {
   display: grid;

@@ -851,43 +851,39 @@ let currentDetailBeast = null;
 
 function formatBeastPlainText(beast) {
     if (!beast) return '';
-    let text = `${cleanText(beast.name)}\n`;
-    text += `${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}\n\n`;
-    text += `Armor Class: ${beast.ac}\n`;
-    text += `Hit Points: ${beast.hp} ${beast.hd ? `(${beast.hd})` : ''}\n`;
-    text += `Speed: ${beast.speed}\n\n`;
-    text += `STR: ${beast.str || 10} (${getModifier(beast.str || 10)})\n`;
-    text += `DEX: ${beast.dex || 10} (${getModifier(beast.dex || 10)})\n`;
-    text += `CON: ${beast.con || 10} (${getModifier(beast.con || 10)})\n`;
-    text += `INT: ${beast.int || 10} (${getModifier(beast.int || 10)})\n`;
-    text += `WIS: ${beast.wis || 10} (${getModifier(beast.wis || 10)})\n`;
-    text += `CHA: ${beast.cha || 10} (${getModifier(beast.cha || 10)})\n\n`;
-    if (beast.saves) text += `Saving Throws: ${cleanText(beast.saves)}\n`;
-    if (beast.skills) text += `Skills: ${cleanText(beast.skills)}\n`;
-    if (beast.damage_vulnerabilities) text += `Damage Vulnerabilities: ${beast.damage_vulnerabilities}\n`;
-    if (beast.damage_resistances) text += `Damage Resistances: ${beast.damage_resistances}\n`;
-    if (beast.damage_immunities) text += `Damage Immunities: ${beast.damage_immunities}\n`;
-    if (beast.condition_immunities) text += `Condition Immunities: ${beast.condition_immunities}\n`;
-    if (beast.senses) text += `Senses: ${cleanText(beast.senses)}\n`;
-    if (beast.languages) text += `Languages: ${cleanText(beast.languages)}\n`;
-    text += `Challenge: ${beast.cr}\n\n`;
+    let text = `## ${cleanText(beast.name)}\n`;
+    text += `*${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}*\n\n`;
+    text += `**AC** ${beast.ac}\n`;
+    const hpRoll = beast.hd || beast.roll;
+    text += `**HP** ${beast.hp}${hpRoll ? ` (${hpRoll})` : ''}\n`;
+    text += `**Speed** ${beast.speed}\n\n`;
+    text += `|STR|DEX|CON|INT|WIS|CHA|\n`;
+    text += `|:---:|:---:|:---:|:---:|:---:|:---:|\n`;
+    text += `|${beast.str || 10} (${getModifier(beast.str || 10)})|${beast.dex || 10} (${getModifier(beast.dex || 10)})|${beast.con || 10} (${getModifier(beast.con || 10)})|${beast.int || 10} (${getModifier(beast.int || 10)})|${beast.wis || 10} (${getModifier(beast.wis || 10)})|${beast.cha || 10} (${getModifier(beast.cha || 10)})|\n\n`;
+    if (beast.saves) text += `**Saving Throws** ${cleanText(beast.saves)}\n`;
+    if (beast.skills) text += `**Skills** ${cleanText(beast.skills)}\n`;
+    if (beast.damage_vulnerabilities) text += `**Damage Vulnerabilities** ${beast.damage_vulnerabilities}\n`;
+    if (beast.damage_resistances) text += `**Damage Resistances** ${beast.damage_resistances}\n`;
+    if (beast.damage_immunities) text += `**Damage Immunities** ${beast.damage_immunities}\n`;
+    if (beast.condition_immunities) text += `**Condition Immunities** ${beast.condition_immunities}\n`;
+    if (beast.senses) text += `**Senses** ${cleanText(beast.senses)}\n`;
+    if (beast.languages) text += `**Languages** ${cleanText(beast.languages)}\n`;
+    text += `**CR** ${beast.cr}\n\n`;
     
     if (beast.traits && beast.traits.length > 0) {
-        text += `TRAITS\n`;
         beast.traits.forEach(t => {
-            text += `${cleanText(t.name)}. ${cleanText(t.text)}\n`;
+            text += `***${cleanText(t.name)}.*** ${cleanText(t.text)}\n\n`;
         });
-        text += `\n`;
     }
     
     const actions = beast.actions || beast.action || [];
     if (actions.length > 0) {
-        text += `ACTIONS\n`;
+        text += `### Actions\n`;
         actions.forEach(a => {
-            text += `${cleanText(a.name)}. ${cleanText(a.text)}`;
+            text += `***${cleanText(a.name)}.*** ${cleanText(a.text)}`;
             if (a.roll) text += ` (Roll: ${a.roll})`;
             if (a.damage) text += ` (Damage: ${a.damage})`;
-            text += `\n`;
+            text += `\n\n`;
         });
     }
     return text.trim();
@@ -1010,18 +1006,34 @@ function renderStatBlock(beast) {
             <div class="stat-divider"></div>
             
             <div class="attribute-line"><span class="attribute-label">Armor Class</span> ${beast.ac}</div>
-            <div class="attribute-line"><span class="attribute-label">Hit Points</span> ${beast.hp} ${beast.hd ? `(${beast.hd})` : ''}</div>
+            <div class="attribute-line"><span class="attribute-label">Hit Points</span> ${beast.hp} ${beast.hd ? `(${beast.hd})` : (beast.roll ? `(${beast.roll})` : '')}</div>
             <div class="attribute-line"><span class="attribute-label">Speed</span> ${beast.speed}</div>
             
             <div class="stat-divider"></div>
             
-            <div class="stats-grid">
-                <div><div class="stat-box-title">STR</div><div class="stat-box-val">${beast.str || 10} (${getModifier(beast.str || 10)})</div></div>
-                <div><div class="stat-box-title">DEX</div><div class="stat-box-val">${beast.dex || 10} (${getModifier(beast.dex || 10)})</div></div>
-                <div><div class="stat-box-title">CON</div><div class="stat-box-val">${beast.con || 10} (${getModifier(beast.con || 10)})</div></div>
-                <div><div class="stat-box-title">INT</div><div class="stat-box-val">${beast.int || 10} (${getModifier(beast.int || 10)})</div></div>
-                <div><div class="stat-box-title">WIS</div><div class="stat-box-val">${beast.wis || 10} (${getModifier(beast.wis || 10)})</div></div>
-                <div><div class="stat-box-title">CHA</div><div class="stat-box-val">${beast.cha || 10} (${getModifier(beast.cha || 10)})</div></div>
+            <div class="stat-table-wrapper">
+                <table class="stat-table">
+                    <thead>
+                        <tr>
+                            <th>STR</th>
+                            <th>DEX</th>
+                            <th>CON</th>
+                            <th>INT</th>
+                            <th>WIS</th>
+                            <th>CHA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${beast.str || 10} (${getModifier(beast.str || 10)})</td>
+                            <td>${beast.dex || 10} (${getModifier(beast.dex || 10)})</td>
+                            <td>${beast.con || 10} (${getModifier(beast.con || 10)})</td>
+                            <td>${beast.int || 10} (${getModifier(beast.int || 10)})</td>
+                            <td>${beast.wis || 10} (${getModifier(beast.wis || 10)})</td>
+                            <td>${beast.cha || 10} (${getModifier(beast.cha || 10)})</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
             
             <div class="stat-divider"></div>
