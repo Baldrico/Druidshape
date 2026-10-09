@@ -162,7 +162,23 @@ function cleanText(str) {
         .replace(/Roth[ÃǸ][©]?/g, 'Rothé')
         .replace(/roth[ÃǸ][©]?/g, 'rothé')
         .replace(/Ã©/g, 'é')
-        .replace(/Ǹ/g, 'é');
+        .replace(/Ǹ/g, 'é')
+        .replace(/â€™/g, "'")
+        .replace(/â€“/g, "-")
+        .replace(/â€”/g, "—")
+        .replace(/â€œ/g, '"')
+        .replace(/â€ /g, '"')
+        .replace(/\?T/g, "'")
+        .replace(/\?\"/g, "-")
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u2013]/g, "-")
+        .replace(/(?<!\p{L})Deep\s+Roth(e)?('s)?(?!\p{L})/gui, (m, e, s) => {
+            const isLower = m[0] === 'd';
+            return (isLower ? 'deep rothé' : 'Deep Rothé') + (s || '');
+        })
+        .replace(/(?<!\p{L})Roth(e)?('s)?(?!\p{L})/gu, (m, e, s) => 'Rothé' + (s || ''))
+        .replace(/(?<!\p{L})roth(e)?('s)?(?!\p{L})/gu, (m, e, s) => 'rothé' + (s || ''))
+        .replace(/as well as i to all divination spells/g, 'as well as to all divination spells');
 }
 
 function normalizeBeasts(rawArray, sourceId, sourceName) {
@@ -170,12 +186,14 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
     return rawArray.filter(b => b && b.name).map(b => {
         const actions = b.actions || b.action || [];
         const traits = b.traits || b.trait || [];
-        return {
+        const normalized = {
             ...b,
             name: cleanText((b.name || '').trim()),
-            cr: (b.cr !== undefined ? b.cr : '0').toString(),
-            size: b.size || 'Medium',
-            type: b.type || 'beast',
+            cr: (b.cr !== undefined ? b.cr : '0').toString().trim(),
+            size: b.size ? b.size.trim() : 'Medium',
+            type: b.type ? b.type.trim() : 'beast',
+            senses: b.senses ? cleanText(b.senses.trim()) : undefined,
+            spells: b.spells ? cleanText(b.spells.trim()) : undefined,
             actions: Array.isArray(actions) ? actions.map(a => ({
                 ...a,
                 name: cleanText(a.name),
@@ -189,6 +207,9 @@ function normalizeBeasts(rawArray, sourceId, sourceName) {
             _sourceId: sourceId,
             _sourceName: sourceName
         };
+        delete normalized.action;
+        delete normalized.trait;
+        return normalized;
     });
 }
 
@@ -382,6 +403,43 @@ async function init() {
                         if (c.seen && c.seen[oldName]) { c.seen[newName] = true; delete c.seen[oldName]; }
                         if (c.favs && c.favs[oldName]) { c.favs[newName] = true; delete c.favs[oldName]; }
                     });
+                }
+                if (b.cr !== undefined && typeof b.cr === 'string') {
+                    const trimmedCr = b.cr.trim();
+                    if (trimmedCr !== b.cr) { b.cr = trimmedCr; srcModified = true; }
+                }
+                if (Array.isArray(b.traits)) {
+                    b.traits.forEach(t => {
+                        if (t.name) {
+                            const cleaned = cleanText(t.name);
+                            if (cleaned !== t.name) { t.name = cleaned; srcModified = true; }
+                        }
+                        if (t.text) {
+                            const cleaned = cleanText(t.text);
+                            if (cleaned !== t.text) { t.text = cleaned; srcModified = true; }
+                        }
+                    });
+                }
+                const actions = b.actions || b.action;
+                if (Array.isArray(actions)) {
+                    actions.forEach(a => {
+                        if (a.name) {
+                            const cleaned = cleanText(a.name);
+                            if (cleaned !== a.name) { a.name = cleaned; srcModified = true; }
+                        }
+                        if (a.text) {
+                            const cleaned = cleanText(a.text);
+                            if (cleaned !== a.text) { a.text = cleaned; srcModified = true; }
+                        }
+                    });
+                }
+                if (b.spells) {
+                    const cleaned = cleanText(b.spells);
+                    if (cleaned !== b.spells) { b.spells = cleaned; srcModified = true; }
+                }
+                if (b.senses) {
+                    const cleaned = cleanText(b.senses);
+                    if (cleaned !== b.senses) { b.senses = cleaned; srcModified = true; }
                 }
             });
             if (srcModified) {
@@ -830,8 +888,8 @@ function renderStatBlock(beast) {
             <div class="stat-section-header">${title}</div>
             ${arr.map(a => `
                 <div class="trait-item">
-                    <span class="trait-title">${a.name}.</span> 
-                    ${a.text}
+                    <span class="trait-title">${cleanText(a.name)}.</span> 
+                    ${cleanText(a.text)}
                     ${a.roll ? `<br><small>Roll: ${a.roll}</small>` : ''}
                     ${a.damage ? `<br><small>Damage: ${a.damage}</small>` : ''}
                 </div>
@@ -842,7 +900,7 @@ function renderStatBlock(beast) {
 
     sb.innerHTML = `
         <div class="details-container">
-            <div class="beast-title">${beast.name}</div>
+            <div class="beast-title">${cleanText(beast.name)}</div>
             <div class="beast-subtitle">${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}</div>
             
             <div class="stat-divider"></div>
@@ -864,21 +922,21 @@ function renderStatBlock(beast) {
             
             <div class="stat-divider"></div>
             
-            ${beast.saves ? `<div class="attribute-line"><span class="attribute-label">Saving Throws</span> ${beast.saves}</div>` : ''}
-            ${beast.skills ? `<div class="attribute-line"><span class="attribute-label">Skills</span> ${beast.skills}</div>` : ''}
+            ${beast.saves ? `<div class="attribute-line"><span class="attribute-label">Saving Throws</span> ${cleanText(beast.saves)}</div>` : ''}
+            ${beast.skills ? `<div class="attribute-line"><span class="attribute-label">Skills</span> ${cleanText(beast.skills)}</div>` : ''}
             ${beast.damage_vulnerabilities ? `<div class="attribute-line"><span class="attribute-label">Damage Vulnerabilities</span> ${beast.damage_vulnerabilities}</div>` : ''}
             ${beast.damage_resistances ? `<div class="attribute-line"><span class="attribute-label">Damage Resistances</span> ${beast.damage_resistances}</div>` : ''}
             ${beast.damage_immunities ? `<div class="attribute-line"><span class="attribute-label">Damage Immunities</span> ${beast.damage_immunities}</div>` : ''}
             ${beast.condition_immunities ? `<div class="attribute-line"><span class="attribute-label">Condition Immunities</span> ${beast.condition_immunities}</div>` : ''}
-            ${beast.senses ? `<div class="attribute-line"><span class="attribute-label">Senses</span> ${beast.senses}</div>` : ''}
-            ${beast.languages ? `<div class="attribute-line"><span class="attribute-label">Languages</span> ${beast.languages}</div>` : ''}
+            ${beast.senses ? `<div class="attribute-line"><span class="attribute-label">Senses</span> ${cleanText(beast.senses)}</div>` : ''}
+            ${beast.languages ? `<div class="attribute-line"><span class="attribute-label">Languages</span> ${cleanText(beast.languages)}</div>` : ''}
             <div class="attribute-line"><span class="attribute-label">Challenge</span> ${beast.cr}</div>
             <div class="attribute-line"><span class="attribute-label">Source</span> ${beast._sourceName || beast.source || 'Core 5e'}</div>
             
             <div class="stat-divider"></div>
             
             ${renderArray(beast.traits, 'Traits')}
-            ${renderArray(beast.actions, 'Actions')}
+            ${renderArray(beast.actions || beast.action, 'Actions')}
         </div>
     `;
 }

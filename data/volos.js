@@ -13,7 +13,7 @@ window.DEFAULT_VOLOS = [
     "wis": 12,
     "cha": 5,
     "passive": 11,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Charge",
@@ -26,7 +26,11 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 14 (2d8+5) piercing damage."
       }
     ],
-    "environments": ["Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Brontosaurus",
@@ -42,7 +46,7 @@ window.DEFAULT_VOLOS = [
     "wis": 10,
     "cha": 7,
     "passive": 10,
-    "cr": "5 ",
+    "cr": "5",
     "action": [
       {
         "name": "Stomp",
@@ -53,7 +57,10 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +8 to hit, reach 20 ft., one target. Hit: 32 (6d8+5) bludgeoning damage."
       }
     ],
-    "environments": ["Forest", "Grassland"]
+    "environments": [
+      "Forest",
+      "Grassland"
+    ]
   },
   {
     "name": "Cow",
@@ -82,7 +89,9 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6+4) piercing damage."
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Cranium Rat",
@@ -100,7 +109,7 @@ window.DEFAULT_VOLOS = [
     "senses": "Darkvision 30 ft.",
     "passive": 10,
     "languages": "Telepathy 30 ft.",
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Illumination",
@@ -108,7 +117,7 @@ window.DEFAULT_VOLOS = [
       },
       {
         "name": "Telepathic Shroud",
-        "text": "The cranium rat is immune to any effect that would sense its emotions or read its thoughts, as well as i to all divination spells."
+        "text": "The cranium rat is immune to any effect that would sense its emotions or read its thoughts, as well as to all divination spells."
       }
     ],
     "action": [
@@ -117,7 +126,10 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 1 piercing damage."
       }
     ],
-    "environments": ["Underdark", "Urban"]
+    "environments": [
+      "Underdark",
+      "Urban"
+    ]
   },
   {
     "name": "Deep Rothé",
@@ -152,7 +164,9 @@ window.DEFAULT_VOLOS = [
       }
     ],
     "spells": "dancing lights",
-    "environments": ["Underdark"]
+    "environments": [
+      "Underdark"
+    ]
   },
   {
     "name": "Deinonychus",
@@ -169,7 +183,7 @@ window.DEFAULT_VOLOS = [
     "cha": 6,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Pounce",
@@ -190,7 +204,11 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 6 (1d8+2) slashing damage."
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Dimetrodon",
@@ -221,7 +239,10 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 9 (2d6+2) piercing damage."
       }
     ],
-    "environments": ["Coastal", "Swamp"]
+    "environments": [
+      "Coastal",
+      "Swamp"
+    ]
   },
   {
     "name": "Dolphin",
@@ -257,7 +278,10 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6+2) bludgeoning damage."
       }
     ],
-    "environments": ["Coastal", "Underwater"]
+    "environments": [
+      "Coastal",
+      "Underwater"
+    ]
   },
   {
     "name": "Hadrosaurus",
@@ -281,7 +305,10 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 7 (1d10+2) bludgeoning damage."
       }
     ],
-    "environments": ["Grassland", "Swamp"]
+    "environments": [
+      "Grassland",
+      "Swamp"
+    ]
   },
   {
     "name": "Ox",
@@ -314,7 +341,9 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 7 (1d6+4) piercing damage."
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Quetzalcoatlus",
@@ -332,7 +361,7 @@ window.DEFAULT_VOLOS = [
     "cha": 5,
     "skills": "Perception +2",
     "passive": 12,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Dive Attack",
@@ -340,7 +369,7 @@ window.DEFAULT_VOLOS = [
       },
       {
         "name": "Flyby",
-        "text": "The quetzalcoatlus doesn’t provoke an opportunity attack when it flies out of an enemy’s reach."
+        "text": "The quetzalcoatlus doesn't provoke an opportunity attack when it flies out of an enemy's reach."
       }
     ],
     "action": [
@@ -349,7 +378,11 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 10 ft., one creature. Hit: 12 (3d6+2) piercing damage."
       }
     ],
-    "environments": ["Coastal", "Hill", "Mountain"]
+    "environments": [
+      "Coastal",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Rothé",
@@ -395,14 +428,17 @@ window.DEFAULT_VOLOS = [
     "wis": 11,
     "cha": 5,
     "passive": 10,
-    "cr": "4 ",
+    "cr": "4",
     "action": [
       {
         "name": "Tail",
         "text": "Melee Weapon Attack: +7 to hit, reach 10 ft., one target. Hit: 26 (6d6+5) piercing damage."
       }
     ],
-    "environments": ["Forest", "Grassland"]
+    "environments": [
+      "Forest",
+      "Grassland"
+    ]
   },
   {
     "name": "Stench Kow",
@@ -428,7 +464,7 @@ window.DEFAULT_VOLOS = [
       },
       {
         "name": "Stench",
-        "text": "Any creature other than a stench kow that starts its turn within 5 feet of the stench kow must succeed on a DC 26 Constitution saving throw or be poisoned until the start of the creature’s next turn. On a successful saving throw, the creature is immune to the stench of all stench kows for 1 hour."
+        "text": "Any creature other than a stench kow that starts its turn within 5 feet of the stench kow must succeed on a DC 26 Constitution saving throw or be poisoned until the start of the creature's next turn. On a successful saving throw, the creature is immune to the stench of all stench kows for 1 hour."
       }
     ],
     "action": [
@@ -458,7 +494,7 @@ window.DEFAULT_VOLOS = [
     "traits": [
       {
         "name": "Pack Tactics",
-        "text": "The velociraptor has advantage on an attack roll against a creature if at least one of the velociraptor’s allies is within 5 feet of the creature and the ally isn’t incapacitated."
+        "text": "The velociraptor has advantage on an attack roll against a creature if at least one of the velociraptor's allies is within 5 feet of the creature and the ally isn't incapacitated."
       }
     ],
     "action": [
@@ -475,7 +511,9 @@ window.DEFAULT_VOLOS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 4 (1d4+2) slashing damage."
       }
     ],
-    "environments": ["Forest", "Grassland"]
+    "environments": [
+      "Forest",
+      "Grassland"
+    ]
   }
-]
-;
+];

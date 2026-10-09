@@ -14,7 +14,7 @@ window.DEFAULT_BEASTS = [
     "cha": 5,
     "skills": "Perception +5",
     "passive": 15,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Pounce",
@@ -33,7 +33,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw|6|1d8+4"
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Ankylosaurus",
@@ -49,14 +51,16 @@ window.DEFAULT_BEASTS = [
     "wis": 12,
     "cha": 5,
     "passive": 11,
-    "cr": "3 ",
+    "cr": "3",
     "actions": [
       {
         "name": "Tail",
         "text": "Melee Weapon Attack: +7 to hit, reach 10 ft., one target. Hit: 18 (4d6 + 4) bludgeoning damage. If the target is a creature, it must succeed on a DC 14 Strength saving throw or be knocked prone."
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Ape",
@@ -91,7 +95,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Rock|5|1d6+3"
       }
     ],
-    "environments": ["Forest"]
+    "environments": [
+      "Forest"
+    ]
   },
   {
     "name": "Axe Beak",
@@ -115,7 +121,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Beak|4|1d8+2"
       }
     ],
-    "environments": ["Grassland", "Hill"]
+    "environments": [
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Baboon",
@@ -132,7 +141,7 @@ window.DEFAULT_BEASTS = [
     "wis": 12,
     "cha": 6,
     "passive": 11,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Pack Tactics",
@@ -146,7 +155,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|1|1d4-1"
       }
     ],
-    "environments": ["Forest", "Hill"]
+    "environments": [
+      "Forest",
+      "Hill"
+    ]
   },
   {
     "name": "Badger",
@@ -164,7 +176,7 @@ window.DEFAULT_BEASTS = [
     "cha": 5,
     "senses": "Darkvision 30 ft.",
     "passive": 11,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Smell",
@@ -178,7 +190,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|2|1"
       }
     ],
-    "environments": ["Forest"]
+    "environments": [
+      "Forest"
+    ]
   },
   {
     "name": "Bat",
@@ -196,7 +210,7 @@ window.DEFAULT_BEASTS = [
     "cha": 4,
     "senses": "Blindsight 60 ft.",
     "passive": 11,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Echolocation",
@@ -254,7 +268,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Claws|3|2d4+2"
       }
     ],
-    "environments": ["Forest"]
+    "environments": [
+      "Forest"
+    ]
   },
   {
     "name": "Blood Hawk",
@@ -290,7 +306,14 @@ window.DEFAULT_BEASTS = [
         "attack": "Beak|4|1d4+2"
       }
     ],
-    "environments": ["Arctic", "Coastal", "Forest", "Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Arctic",
+      "Coastal",
+      "Forest",
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Boar",
@@ -325,7 +348,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Tusk|3|1d6+1"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Brown Bear",
@@ -343,7 +370,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Smell",
@@ -366,7 +393,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Claws|5|2d6+4"
       }
     ],
-    "environments": ["Arctic", "Forest", "Hill"]
+    "environments": [
+      "Arctic",
+      "Forest",
+      "Hill"
+    ]
   },
   {
     "name": "Camel",
@@ -390,7 +421,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|1d4"
       }
     ],
-    "environments": ["Desert"]
+    "environments": [
+      "Desert"
+    ]
   },
   {
     "name": "Cat",
@@ -408,7 +441,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3, Stealth +4",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Smell",
@@ -422,7 +455,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Claws||1"
       }
     ],
-    "environments": ["Desert", "Forest", "Grassland", "Urban"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Urban"
+    ]
   },
   {
     "name": "Cave Bear",
@@ -441,7 +479,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +3",
     "senses": "Darkvision 60 ft.",
     "passive": 13,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Keen Smell",
@@ -495,7 +533,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Constrict|4|1d8+2"
       }
     ],
-    "environments": ["Desert", "Forest", "Swamp", "Underwater"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Swamp",
+      "Underwater"
+    ]
   },
   {
     "name": "Crab",
@@ -514,7 +557,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Stealth +2",
     "senses": "Blindsight 30 ft.",
     "passive": 9,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Amphibious",
@@ -528,7 +571,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw||1"
       }
     ],
-    "environments": ["Coastal"]
+    "environments": [
+      "Coastal"
+    ]
   },
   {
     "name": "Crocodile",
@@ -560,7 +605,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d10+2"
       }
     ],
-    "environments": ["Swamp", "Urban"]
+    "environments": [
+      "Swamp",
+      "Urban"
+    ]
   },
   {
     "name": "Deer",
@@ -576,7 +624,7 @@ window.DEFAULT_BEASTS = [
     "wis": 14,
     "cha": 5,
     "passive": 12,
-    "cr": "0 ",
+    "cr": "0",
     "actions": [
       {
         "name": "Bite",
@@ -584,7 +632,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|2|1d4"
       }
     ],
-    "environments": ["Forest", "Grassland"]
+    "environments": [
+      "Forest",
+      "Grassland"
+    ]
   },
   {
     "name": "Dire Wolf",
@@ -601,7 +652,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3, Stealth +4",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Hearing and Smell",
@@ -619,7 +670,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|2d6+3"
       }
     ],
-    "environments": ["Forest", "Hill"]
+    "environments": [
+      "Forest",
+      "Hill"
+    ]
   },
   {
     "name": "Draft Horse",
@@ -643,7 +697,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Hooves|6|2d4+4"
       }
     ],
-    "environments": ["Urban"]
+    "environments": [
+      "Urban"
+    ]
   },
   {
     "name": "Eagle",
@@ -661,7 +717,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +4",
     "passive": 14,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Sight",
@@ -675,7 +731,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Talons|4|1d4+2"
       }
     ],
-    "environments": ["Coastal", "Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Coastal",
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Elephant",
@@ -691,7 +752,7 @@ window.DEFAULT_BEASTS = [
     "wis": 11,
     "cha": 6,
     "passive": 10,
-    "cr": "4 ",
+    "cr": "4",
     "traits": [
       {
         "name": "Trampling Charge",
@@ -710,7 +771,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Stomp|8|3d10+5"
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Elk",
@@ -744,7 +807,11 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +5 to hit, reach 5 ft., one prone creature. Hit: 8 (2d4 + 3) bludgeoning damage."
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Flying Snake",
@@ -777,7 +844,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|6|1"
       }
     ],
-    "environments": ["Desert", "Forest", "Grassland", "Urban"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Urban"
+    ]
   },
   {
     "name": "Frog",
@@ -796,7 +868,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +1, Stealth +3",
     "senses": "Darkvision 30 ft.",
     "passive": 11,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Amphibious",
@@ -848,7 +920,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Claws|3|2d4+1"
       }
     ],
-    "environments": ["Forest"]
+    "environments": [
+      "Forest"
+    ]
   },
   {
     "name": "Giant Bat",
@@ -884,7 +958,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d6+2"
       }
     ],
-    "environments": ["Forest", "Underdark"]
+    "environments": [
+      "Forest",
+      "Underdark"
+    ]
   },
   {
     "name": "Giant Boar",
@@ -900,7 +977,7 @@ window.DEFAULT_BEASTS = [
     "wis": 7,
     "cha": 5,
     "passive": 8,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Charge",
@@ -919,7 +996,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Tusk|5|2d6+3"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Giant Centipede",
@@ -945,7 +1026,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d4+2"
       }
     ],
-    "environments": ["Underdark", "Urban"]
+    "environments": [
+      "Underdark",
+      "Urban"
+    ]
   },
   {
     "name": "Giant Constrictor Snake",
@@ -964,7 +1048,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +2",
     "senses": "Blindsight 10 ft.",
     "passive": 12,
-    "cr": "2 ",
+    "cr": "2",
     "actions": [
       {
         "name": "Bite",
@@ -977,7 +1061,13 @@ window.DEFAULT_BEASTS = [
         "attack": "Constrict|6|2d8+4"
       }
     ],
-    "environments": ["Desert", "Forest", "Swamp", "Underdark", "Underwater"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Swamp",
+      "Underdark",
+      "Underwater"
+    ]
   },
   {
     "name": "Giant Crab",
@@ -1010,7 +1100,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw|3|1d6+1"
       }
     ],
-    "environments": ["Coastal"]
+    "environments": [
+      "Coastal"
+    ]
   },
   {
     "name": "Giant Crocodile",
@@ -1028,7 +1120,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Stealth +5",
     "passive": 10,
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Hold Breath",
@@ -1051,7 +1143,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Tail|8|2d8+5"
       }
     ],
-    "environments": ["Swamp"]
+    "environments": [
+      "Swamp"
+    ]
   },
   {
     "name": "Giant Eagle",
@@ -1069,7 +1163,7 @@ window.DEFAULT_BEASTS = [
     "cha": 10,
     "skills": "Perception +4",
     "passive": 14,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Sight",
@@ -1092,7 +1186,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Talons|5|2d6+3"
       }
     ],
-    "environments": ["Coastal", "Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Coastal",
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Giant Elk",
@@ -1109,7 +1208,7 @@ window.DEFAULT_BEASTS = [
     "cha": 10,
     "skills": "Perception +4",
     "passive": 14,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Charge",
@@ -1129,7 +1228,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Hooves|6|4d8+4"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Giant Fire Beetle",
@@ -1146,7 +1250,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "senses": "Blindsight 30 ft.",
     "passive": 8,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Illumination",
@@ -1160,7 +1264,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|1|1d6-1"
       }
     ],
-    "environments": ["Underdark"]
+    "environments": [
+      "Underdark"
+    ]
   },
   {
     "name": "Giant Fly",
@@ -1178,7 +1284,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "senses": "Darkvision 60 ft.",
     "passive": 10,
-    "cr": "0 ",
+    "cr": "0",
     "environments": []
   },
   {
@@ -1220,7 +1326,10 @@ window.DEFAULT_BEASTS = [
         "text": "The frog makes one bite attack against a Small or smaller target it is grappling. If the attack hits, the target is swallowed, and the grapple ends. The swallowed target is blinded and restrained, it has total cover against attacks and other effects outside the frog, and it takes 5 (2d4) acid damage at the start of each of the frog's turns. The frog can have only one target swallowed at a time. If the frog dies, a swallowed creature is no longer restrained by it and can escape from the corpse using 5 ft. of movement, exiting prone."
       }
     ],
-    "environments": ["Forest", "Swamp"]
+    "environments": [
+      "Forest",
+      "Swamp"
+    ]
   },
   {
     "name": "Giant Goat",
@@ -1255,7 +1364,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Ram|5|2d4+3"
       }
     ],
-    "environments": ["Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Giant Hyena",
@@ -1272,7 +1385,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Rampage",
@@ -1286,7 +1399,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|1d6+3"
       }
     ],
-    "environments": ["Desert", "Forest", "Grassland", "Hill"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Giant Lizard",
@@ -1322,7 +1440,13 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d8+2"
       }
     ],
-    "environments": ["Coastal", "Desert", "Forest", "Swamp", "Underdark"]
+    "environments": [
+      "Coastal",
+      "Desert",
+      "Forest",
+      "Swamp",
+      "Underdark"
+    ]
   },
   {
     "name": "Giant Octopus",
@@ -1341,7 +1465,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +4, Stealth +5",
     "senses": "Darkvision 60 ft.",
     "passive": 14,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Hold Breath",
@@ -1367,7 +1491,9 @@ window.DEFAULT_BEASTS = [
         "text": "A 20-foot-radius cloud of ink extends all around the octopus if it is underwater. The area is heavily obscured for 1 minute, although a significant current can disperse the ink. After releasing the ink, the octopus can use the Dash action as a bonus action."
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Giant Owl",
@@ -1404,7 +1530,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Talons|3|2d6+1"
       }
     ],
-    "environments": ["Arctic", "Forest", "Hill"]
+    "environments": [
+      "Arctic",
+      "Forest",
+      "Hill"
+    ]
   },
   {
     "name": "Giant Poisonous Snake",
@@ -1431,7 +1561,14 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|6|1d4+4"
       }
     ],
-    "environments": ["Desert", "Forest", "Grassland", "Swamp", "Underdark", "Urban"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Swamp",
+      "Underdark",
+      "Urban"
+    ]
   },
   {
     "name": "Giant Rat",
@@ -1466,7 +1603,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d4+2"
       }
     ],
-    "environments": ["Forest", "Swamp", "Underdark", "Urban"]
+    "environments": [
+      "Forest",
+      "Swamp",
+      "Underdark",
+      "Urban"
+    ]
   },
   {
     "name": "Giant Rat (Diseased)",
@@ -1508,7 +1650,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "senses": "Blindsight 60 ft.",
     "passive": 9,
-    "cr": "3 ",
+    "cr": "3",
     "actions": [
       {
         "name": "Claw",
@@ -1525,7 +1667,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Sting|4|1d10+2"
       }
     ],
-    "environments": ["Desert"]
+    "environments": [
+      "Desert"
+    ]
   },
   {
     "name": "Giant Sea Horse",
@@ -1561,7 +1705,9 @@ window.DEFAULT_BEASTS = [
         "attack": "|3|1d6+1"
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Giant Shark",
@@ -1580,7 +1726,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +3",
     "senses": "Blindsight 60 ft.",
     "passive": 13,
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Blood Frenzy",
@@ -1598,7 +1744,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|9|3d10+6"
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Giant Spider",
@@ -1617,7 +1765,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Stealth +7",
     "senses": "Blindsight 10 ft., Darkvision 60 ft.",
     "passive": 10,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Spider Climb",
@@ -1644,7 +1792,13 @@ window.DEFAULT_BEASTS = [
         "attack": "Web|5|0"
       }
     ],
-    "environments": ["Desert", "Forest", "Swamp", "Underdark", "Urban"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Swamp",
+      "Underdark",
+      "Urban"
+    ]
   },
   {
     "name": "Giant Toad",
@@ -1662,7 +1816,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "senses": "Darkvision 30 ft.",
     "passive": 10,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Amphibious",
@@ -1684,7 +1838,13 @@ window.DEFAULT_BEASTS = [
         "text": "The toad makes one bite attack against a Medium or smaller target it is grappling. If the attack hits, the target is swallowed, and the grapple ends. The swallowed target is blinded and restrained, it has total cover against attacks and other effects outside the toad, and it takes 10 (3d6) acid damage at the start of each of the toad's turns. The toad can have only one target swallowed at a time.\nIf the toad dies, a swallowed creature is no longer restrained by it and can escape from the corpse using 5 feet of movement, exiting prone."
       }
     ],
-    "environments": ["Coastal", "Desert", "Forest", "Swamp", "Underdark"]
+    "environments": [
+      "Coastal",
+      "Desert",
+      "Forest",
+      "Swamp",
+      "Underdark"
+    ]
   },
   {
     "name": "Giant Vulture",
@@ -1702,7 +1862,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Sight and Smell",
@@ -1729,7 +1889,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Talons|4|2d6+2"
       }
     ],
-    "environments": ["Desert", "Grassland"]
+    "environments": [
+      "Desert",
+      "Grassland"
+    ]
   },
   {
     "name": "Giant Wasp",
@@ -1754,7 +1917,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Sting|4|1d6+2"
       }
     ],
-    "environments": ["Forest", "Grassland", "Urban"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Urban"
+    ]
   },
   {
     "name": "Giant Weasel",
@@ -1786,7 +1953,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|1d4+3"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Giant Wolf Spider",
@@ -1827,7 +1998,13 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|3|1d6+1"
       }
     ],
-    "environments": ["Coastal", "Desert", "Forest", "Grassland", "Hill"]
+    "environments": [
+      "Coastal",
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Goat",
@@ -1843,7 +2020,7 @@ window.DEFAULT_BEASTS = [
     "wis": 10,
     "cha": 5,
     "passive": 10,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Charge",
@@ -1862,7 +2039,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Ram|3|1d4+1"
       }
     ],
-    "environments": ["Grassland", "Hill", "Mountain", "Urban"]
+    "environments": [
+      "Grassland",
+      "Hill",
+      "Mountain",
+      "Urban"
+    ]
   },
   {
     "name": "Hawk",
@@ -1880,7 +2062,7 @@ window.DEFAULT_BEASTS = [
     "cha": 6,
     "skills": "Perception +4",
     "passive": 14,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Sight",
@@ -1912,7 +2094,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +2",
     "senses": "Darkvision 30 ft.",
     "passive": 12,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Blood Frenzy",
@@ -1930,7 +2112,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|6|2d8+4"
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Hyena",
@@ -1947,7 +2131,7 @@ window.DEFAULT_BEASTS = [
     "cha": 5,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Pack Tactics",
@@ -1961,7 +2145,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|2|1d6"
       }
     ],
-    "environments": ["Desert", "Forest", "Grassland", "Hill"]
+    "environments": [
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Jackal",
@@ -1978,7 +2167,7 @@ window.DEFAULT_BEASTS = [
     "cha": 6,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Hearing and Smell",
@@ -1996,7 +2185,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|1|1d4-1"
       }
     ],
-    "environments": ["Desert", "Grassland"]
+    "environments": [
+      "Desert",
+      "Grassland"
+    ]
   },
   {
     "name": "Killer Whale",
@@ -2014,7 +2206,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +3",
     "senses": "Blindsight 120 ft.",
     "passive": 13,
-    "cr": "3 ",
+    "cr": "3",
     "traits": [
       {
         "name": "Echolocation",
@@ -2035,7 +2227,9 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 21 (5d6 + 4) piercing damage."
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Lion",
@@ -2052,7 +2246,7 @@ window.DEFAULT_BEASTS = [
     "cha": 8,
     "skills": "Perception +3, Stealth +6",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Smell",
@@ -2083,7 +2277,12 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw|5|1d6+3"
       }
     ],
-    "environments": ["Desert", "Grassland", "Hill", "Mountain"]
+    "environments": [
+      "Desert",
+      "Grassland",
+      "Hill",
+      "Mountain"
+    ]
   },
   {
     "name": "Lizard",
@@ -2101,7 +2300,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "senses": "Darkvision 30 ft.",
     "passive": 9,
-    "cr": "0 ",
+    "cr": "0",
     "actions": [
       {
         "name": "Bite",
@@ -2125,7 +2324,7 @@ window.DEFAULT_BEASTS = [
     "wis": 11,
     "cha": 6,
     "passive": 10,
-    "cr": "6 ",
+    "cr": "6",
     "traits": [
       {
         "name": "Trampling Charge",
@@ -2144,7 +2343,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Stomp|10|4d10+7"
       }
     ],
-    "environments": ["Arctic"]
+    "environments": [
+      "Arctic"
+    ]
   },
   {
     "name": "Mastiff",
@@ -2175,7 +2376,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|3|1d6+1"
       }
     ],
-    "environments": ["Forest", "Hill", "Urban"]
+    "environments": [
+      "Forest",
+      "Hill",
+      "Urban"
+    ]
   },
   {
     "name": "Mule",
@@ -2209,7 +2414,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Hooves|4|1d4+2"
       }
     ],
-    "environments": ["Desert", "Hill", "Urban"]
+    "environments": [
+      "Desert",
+      "Hill",
+      "Urban"
+    ]
   },
   {
     "name": "Octopus",
@@ -2228,7 +2437,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +2, Stealth +4",
     "senses": "Darkvision 30 ft.",
     "passive": 12,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Hold Breath",
@@ -2254,7 +2463,9 @@ window.DEFAULT_BEASTS = [
         "text": "A 5-foot-radius cloud of ink extends all around the octopus if it is underwater. The area is heavily obscured for 1 minute, although a significant current can disperse the ink. After releasing the ink, the octopus can use the Dash action as a bonus action."
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Owl",
@@ -2273,7 +2484,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +3, Stealth +3",
     "senses": "Darkvision 120 ft.",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Flyby",
@@ -2291,7 +2502,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Talons|3|1"
       }
     ],
-    "environments": ["Arctic", "Forest"]
+    "environments": [
+      "Arctic",
+      "Forest"
+    ]
   },
   {
     "name": "Panther",
@@ -2332,7 +2546,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw|4|1d4+2"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Plesiosaurus",
@@ -2350,7 +2568,7 @@ window.DEFAULT_BEASTS = [
     "cha": 5,
     "skills": "Perception +3, Stealth +4",
     "passive": 13,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Hold Breath",
@@ -2364,7 +2582,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|6|3d6+4"
       }
     ],
-    "environments": ["Coastal", "Underwater"]
+    "environments": [
+      "Coastal",
+      "Underwater"
+    ]
   },
   {
     "name": "Poisonous Snake",
@@ -2390,7 +2611,14 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|1"
       }
     ],
-    "environments": ["Coastal", "Desert", "Forest", "Grassland", "Hill", "Swamp"]
+    "environments": [
+      "Coastal",
+      "Desert",
+      "Forest",
+      "Grassland",
+      "Hill",
+      "Swamp"
+    ]
   },
   {
     "name": "Polar Bear",
@@ -2408,7 +2636,7 @@ window.DEFAULT_BEASTS = [
     "cha": 7,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Keen Smell",
@@ -2431,7 +2659,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Claws|7|2d6+5"
       }
     ],
-    "environments": ["Arctic", "Underdark"]
+    "environments": [
+      "Arctic",
+      "Underdark"
+    ]
   },
   {
     "name": "Pony",
@@ -2455,7 +2686,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Hooves|4|2d4+2"
       }
     ],
-    "environments": ["Urban"]
+    "environments": [
+      "Urban"
+    ]
   },
   {
     "name": "Pteranodon",
@@ -2486,7 +2719,11 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 6 (2d4 + 1) piercing damage"
       }
     ],
-    "environments": ["Coastal", "Grassland", "Mountain"]
+    "environments": [
+      "Coastal",
+      "Grassland",
+      "Mountain"
+    ]
   },
   {
     "name": "Quipper",
@@ -2503,7 +2740,7 @@ window.DEFAULT_BEASTS = [
     "cha": 2,
     "senses": "Darkvision 60 ft.",
     "passive": 8,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Blood Frenzy",
@@ -2521,7 +2758,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|5|1"
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Rat",
@@ -2538,7 +2777,7 @@ window.DEFAULT_BEASTS = [
     "cha": 4,
     "senses": "Darkvision 30 ft.",
     "passive": 10,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Smell",
@@ -2552,7 +2791,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite||1"
       }
     ],
-    "environments": ["Swamp", "Urban"]
+    "environments": [
+      "Swamp",
+      "Urban"
+    ]
   },
   {
     "name": "Raven",
@@ -2570,7 +2812,7 @@ window.DEFAULT_BEASTS = [
     "cha": 6,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Mimicry",
@@ -2583,7 +2825,11 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 1 piercing damage."
       }
     ],
-    "environments": ["Hill", "Swamp", "Urban"]
+    "environments": [
+      "Hill",
+      "Swamp",
+      "Urban"
+    ]
   },
   {
     "name": "Reef Shark",
@@ -2619,7 +2865,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|1d8+2"
       }
     ],
-    "environments": ["Underwater"]
+    "environments": [
+      "Underwater"
+    ]
   },
   {
     "name": "Rhinoceros",
@@ -2635,7 +2883,7 @@ window.DEFAULT_BEASTS = [
     "wis": 12,
     "cha": 6,
     "passive": 11,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Charge",
@@ -2650,7 +2898,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Gore|7|2d8+5"
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Riding Horse",
@@ -2674,7 +2924,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Hooves|2|2d4+3"
       }
     ],
-    "environments": ["Grassland", "Urban"]
+    "environments": [
+      "Grassland",
+      "Urban"
+    ]
   },
   {
     "name": "Saber-Toothed Tiger",
@@ -2691,7 +2944,7 @@ window.DEFAULT_BEASTS = [
     "cha": 8,
     "skills": "Perception +3, Stealth +6",
     "passive": 13,
-    "cr": "2 ",
+    "cr": "2",
     "traits": [
       {
         "name": "Keen Smell",
@@ -2714,7 +2967,10 @@ window.DEFAULT_BEASTS = [
         "attack": "Claw|6|2d6+5"
       }
     ],
-    "environments": ["Arctic", "Mountain"]
+    "environments": [
+      "Arctic",
+      "Mountain"
+    ]
   },
   {
     "name": "Scorpion",
@@ -2731,7 +2987,7 @@ window.DEFAULT_BEASTS = [
     "cha": 2,
     "senses": "Blindsight 10 ft.",
     "passive": 9,
-    "cr": "0 ",
+    "cr": "0",
     "actions": [
       {
         "name": "Sting",
@@ -2739,7 +2995,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Sting|2|1"
       }
     ],
-    "environments": ["Desert"]
+    "environments": [
+      "Desert"
+    ]
   },
   {
     "name": "Sea Horse",
@@ -2755,7 +3013,7 @@ window.DEFAULT_BEASTS = [
     "wis": 10,
     "cha": 2,
     "passive": 10,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Water Breathing",
@@ -2781,7 +3039,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Stealth +4",
     "senses": "Darkvision 30 ft.",
     "passive": 12,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Spider Climb",
@@ -2857,7 +3115,7 @@ window.DEFAULT_BEASTS = [
     "skills": "Perception +3, Stealth +6",
     "senses": "Darkvision 60 ft.",
     "passive": 13,
-    "cr": "1 ",
+    "cr": "1",
     "traits": [
       {
         "name": "Keen Smell",
@@ -2879,7 +3137,10 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 7 (1d8 + 3) slashing damage."
       }
     ],
-    "environments": ["Forest", "Grassland"]
+    "environments": [
+      "Forest",
+      "Grassland"
+    ]
   },
   {
     "name": "Triceratops",
@@ -2895,7 +3156,7 @@ window.DEFAULT_BEASTS = [
     "wis": 11,
     "cha": 5,
     "passive": 10,
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Trampling Charge",
@@ -2914,7 +3175,9 @@ window.DEFAULT_BEASTS = [
         "attack": "Stomp|9|3d10+6"
       }
     ],
-    "environments": ["Grassland"]
+    "environments": [
+      "Grassland"
+    ]
   },
   {
     "name": "Vulture",
@@ -2932,7 +3195,7 @@ window.DEFAULT_BEASTS = [
     "cha": 4,
     "skills": "Perception +3",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Sight and Smell",
@@ -2950,7 +3213,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Beak|2|1d4"
       }
     ],
-    "environments": ["Desert", "Grassland", "Hill"]
+    "environments": [
+      "Desert",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Warhorse",
@@ -2980,7 +3247,9 @@ window.DEFAULT_BEASTS = [
         "attack": "|4|2d6+4"
       }
     ],
-    "environments": ["Urban"]
+    "environments": [
+      "Urban"
+    ]
   },
   {
     "name": "Weasel",
@@ -2997,7 +3266,7 @@ window.DEFAULT_BEASTS = [
     "cha": 3,
     "skills": "Perception +3, Stealth +5",
     "passive": 13,
-    "cr": "0 ",
+    "cr": "0",
     "traits": [
       {
         "name": "Keen Hearing and Smell",
@@ -3046,7 +3315,11 @@ window.DEFAULT_BEASTS = [
         "attack": "Bite|4|2d4+2"
       }
     ],
-    "environments": ["Forest", "Grassland", "Hill"]
+    "environments": [
+      "Forest",
+      "Grassland",
+      "Hill"
+    ]
   },
   {
     "name": "Air Elemental",
@@ -3070,7 +3343,7 @@ window.DEFAULT_BEASTS = [
     "senses": "Darkvision 60ft.",
     "passive": 10,
     "languages": "Auran",
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Air Form",
@@ -3091,7 +3364,10 @@ window.DEFAULT_BEASTS = [
         "text": "Each creature in the elemental's space must make a DC 13 Strength saving throw. On a failure, a target takes 15 (3d8 + 2) bludgeoning damage and is flung up 20 feet away from the elemental in a random direction and knocked prone. If a thrown target strikes an object, such as a wall or floor, the target takes 3 (1d6) bludgeoning damage for every 10 feet it was thrown. If the target is thrown at another creature, that creature must succeed on a DC 13 Dexterity saving throw or take the same damage and be knocked prone.\n\nIf the saving throw is successful, the target takes half the bludgeoning damage and isn't flung away or knocked prone."
       }
     ],
-    "environments": ["Desert", "Mountain"]
+    "environments": [
+      "Desert",
+      "Mountain"
+    ]
   },
   {
     "name": "Earth Elemental",
@@ -3115,7 +3391,7 @@ window.DEFAULT_BEASTS = [
     "senses": "Darkvision 60 ft., Tremorsense 60 ft",
     "passive": 10,
     "languages": "Terran",
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Earth Glide",
@@ -3136,7 +3412,9 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +8 to hit, reach 10 ft., one target. Hit: 14 (2d8 + 5) bludgeoning damage."
       }
     ],
-    "environments": ["Underdark"]
+    "environments": [
+      "Underdark"
+    ]
   },
   {
     "name": "Fire Elemental",
@@ -3158,7 +3436,7 @@ window.DEFAULT_BEASTS = [
     "senses": "Darkvision 60 ft.",
     "passive": 10,
     "languages": "Ignan",
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Fire Form",
@@ -3183,7 +3461,9 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +6 to hit, reach 5 ft., one target. Hit: 10 (2d6 + 3) fire damage. If the target is a creature or a flammable object, it ignites. Until a creature takes an action to douse the fire, the target takes 5 (1d10) fire damage at the start of each of its turns."
       }
     ],
-    "environments": ["Desert"]
+    "environments": [
+      "Desert"
+    ]
   },
   {
     "name": "Water Elemental",
@@ -3206,7 +3486,7 @@ window.DEFAULT_BEASTS = [
     "senses": "Darkvision 60 ft.",
     "passive": 10,
     "languages": "Aquan",
-    "cr": "5 ",
+    "cr": "5",
     "traits": [
       {
         "name": "Water Form",
@@ -3227,11 +3507,14 @@ window.DEFAULT_BEASTS = [
         "text": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 13 (2d8 + 4) bludgeoning damage."
       },
       {
-        "name": "Whelm (Recharge 4–6)",
+        "name": "Whelm (Recharge 4-6)",
         "text": "Each creature in the elemental's space must make a DC 15 Strength saving throw. On a failure, a target takes 13 (2d8 + 4) bludgeoning damage. If it is Large or smaller, it is also grappled (escape DC 14). Until this grapple ends, the target is restrained and unable to breathe unless it can breathe water. If the saving throw is successful, the target is pushed out of the elemental's space.\n\nThe elemental can grapple one Large creature or up to two Medium or smaller creatures at one time. At the start of each of the elemental's turns, each target grappled by it takes 13 (2d8 + 4) bludgeoning damage. A creature within 5 feet of the elemental can pull a creature or object out of it by taking an action to make a DC 14 Strength and succeeding."
       }
     ],
-    "environments": ["Coastal", "Swamp", "Underwater"]
+    "environments": [
+      "Coastal",
+      "Swamp",
+      "Underwater"
+    ]
   }
-]
-;
+];
