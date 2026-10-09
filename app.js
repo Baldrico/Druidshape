@@ -292,6 +292,13 @@ async function fetchDefaultSources() {
         console.warn("Network fetch not available", e);
     }
 
+    // 2. Fallback to preloaded window.DEFAULT_DATA if running on file:// or offline
+    if (window.DEFAULT_DATA) {
+        if (!beastsData && window.DEFAULT_DATA['core-5e']) beastsData = window.DEFAULT_DATA['core-5e'];
+        if (!srd55Data && window.DEFAULT_DATA['core-5.5e']) srd55Data = window.DEFAULT_DATA['core-5.5e'];
+        if (!volosData && window.DEFAULT_DATA['volos-guide']) volosData = window.DEFAULT_DATA['volos-guide'];
+    }
+
     if (beastsData) {
         const coreSource = {
             id: 'core-5e',
@@ -398,28 +405,36 @@ async function init() {
     
     // Ensure core-5.5e is loaded if not already present
     if (!state.dataSources.some(s => s.id === 'core-5.5e')) {
+        let srd55Data = null;
         try {
             const res = await fetch('data/core_5_5e_srd_beasts.json');
             if (res.ok) {
-                const data = await res.json();
-                const srd55Source = {
-                    id: 'core-5.5e',
-                    name: 'Core 5.5e SRD Beasts',
-                    filename: 'core_5_5e_srd_beasts.json',
-                    isDefault: true,
-                    enabled: true,
-                    beasts: normalizeBeasts(data, 'core-5.5e', 'Core 5.5e SRD')
-                };
-                await SourceDB.put(srd55Source);
-                const coreIdx = state.dataSources.findIndex(s => s.id === 'core-5e');
-                if (coreIdx >= 0) {
-                    state.dataSources.splice(coreIdx + 1, 0, srd55Source);
-                } else {
-                    state.dataSources.unshift(srd55Source);
-                }
+                srd55Data = await res.json();
             }
         } catch (e) {
-            console.warn("Could not auto-fetch core-5.5e source", e);
+            // fetch fails on file:// protocol
+        }
+        
+        if (!srd55Data && window.DEFAULT_DATA && window.DEFAULT_DATA['core-5.5e']) {
+            srd55Data = window.DEFAULT_DATA['core-5.5e'];
+        }
+
+        if (srd55Data) {
+            const srd55Source = {
+                id: 'core-5.5e',
+                name: 'Core 5.5e SRD Beasts',
+                filename: 'core_5_5e_srd_beasts.json',
+                isDefault: true,
+                enabled: true,
+                beasts: normalizeBeasts(srd55Data, 'core-5.5e', 'Core 5.5e SRD')
+            };
+            await SourceDB.put(srd55Source);
+            const coreIdx = state.dataSources.findIndex(s => s.id === 'core-5e');
+            if (coreIdx >= 0) {
+                state.dataSources.splice(coreIdx + 1, 0, srd55Source);
+            } else {
+                state.dataSources.unshift(srd55Source);
+            }
         }
     }
     
