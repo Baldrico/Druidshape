@@ -94,6 +94,7 @@ function init() {
     setupEventListeners();
     populateDruidLevels();
     applyTheme();
+    switchTab('beasts');
     renderApp();
 }
 
