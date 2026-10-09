@@ -559,6 +559,20 @@ function setupEventListeners() {
     // Homebrew Editor
     document.getElementById('btn-save-homebrew').addEventListener('click', saveHomebrew);
     document.getElementById('hb-copy-from').addEventListener('change', handleCopyFromChanged);
+
+    // Keyboard shortcut (Ctrl+A / Cmd+A) to select all text in the stat block when open
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+            const modal = els.modalDetails;
+            if (modal && modal.classList.contains('open')) {
+                const active = document.activeElement;
+                if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                    e.preventDefault();
+                    selectStatBlockText();
+                }
+            }
+        }
+    });
 }
 
 function applyTheme() {
@@ -835,6 +849,82 @@ function deleteCharacter(id, event) {
 // Beast Details
 let currentDetailBeast = null;
 
+function formatBeastPlainText(beast) {
+    if (!beast) return '';
+    let text = `${cleanText(beast.name)}\n`;
+    text += `${beast.size} ${beast.type || 'beast'}${beast.alignment ? `, ${beast.alignment}` : ''}\n\n`;
+    text += `Armor Class: ${beast.ac}\n`;
+    text += `Hit Points: ${beast.hp} ${beast.hd ? `(${beast.hd})` : ''}\n`;
+    text += `Speed: ${beast.speed}\n\n`;
+    text += `STR: ${beast.str || 10} (${getModifier(beast.str || 10)})\n`;
+    text += `DEX: ${beast.dex || 10} (${getModifier(beast.dex || 10)})\n`;
+    text += `CON: ${beast.con || 10} (${getModifier(beast.con || 10)})\n`;
+    text += `INT: ${beast.int || 10} (${getModifier(beast.int || 10)})\n`;
+    text += `WIS: ${beast.wis || 10} (${getModifier(beast.wis || 10)})\n`;
+    text += `CHA: ${beast.cha || 10} (${getModifier(beast.cha || 10)})\n\n`;
+    if (beast.saves) text += `Saving Throws: ${cleanText(beast.saves)}\n`;
+    if (beast.skills) text += `Skills: ${cleanText(beast.skills)}\n`;
+    if (beast.damage_vulnerabilities) text += `Damage Vulnerabilities: ${beast.damage_vulnerabilities}\n`;
+    if (beast.damage_resistances) text += `Damage Resistances: ${beast.damage_resistances}\n`;
+    if (beast.damage_immunities) text += `Damage Immunities: ${beast.damage_immunities}\n`;
+    if (beast.condition_immunities) text += `Condition Immunities: ${beast.condition_immunities}\n`;
+    if (beast.senses) text += `Senses: ${cleanText(beast.senses)}\n`;
+    if (beast.languages) text += `Languages: ${cleanText(beast.languages)}\n`;
+    text += `Challenge: ${beast.cr}\n\n`;
+    
+    if (beast.traits && beast.traits.length > 0) {
+        text += `TRAITS\n`;
+        beast.traits.forEach(t => {
+            text += `${cleanText(t.name)}. ${cleanText(t.text)}\n`;
+        });
+        text += `\n`;
+    }
+    
+    const actions = beast.actions || beast.action || [];
+    if (actions.length > 0) {
+        text += `ACTIONS\n`;
+        actions.forEach(a => {
+            text += `${cleanText(a.name)}. ${cleanText(a.text)}`;
+            if (a.roll) text += ` (Roll: ${a.roll})`;
+            if (a.damage) text += ` (Damage: ${a.damage})`;
+            text += `\n`;
+        });
+    }
+    return text.trim();
+}
+
+function selectStatBlockText() {
+    const sb = document.getElementById('stat-block-content');
+    if (!sb) return;
+    const range = document.createRange();
+    range.selectNodeContents(sb);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+async function copyStatBlockText(beast) {
+    const sel = window.getSelection();
+    let textToCopy = sel ? sel.toString().trim() : '';
+    if (!textToCopy && beast) {
+        textToCopy = formatBeastPlainText(beast);
+    }
+    if (textToCopy) {
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+        } catch (err) {
+            const ta = document.createElement('textarea');
+            ta.value = textToCopy;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        }
+    }
+}
+
 function showBeastDetails(name) {
     const beast = getActiveBeasts().find(b => b.name === name) || getAllAvailableBeasts().find(b => b.name === name);
     if (!beast) return;
@@ -844,9 +934,23 @@ function showBeastDetails(name) {
     
     document.getElementById('detail-name').textContent = beast.name;
     
+    const btnCopy = document.getElementById('detail-btn-copy');
     const btnSeen = document.getElementById('detail-btn-seen');
     const btnFav = document.getElementById('detail-btn-fav');
     
+    if (btnCopy) {
+        btnCopy.innerHTML = `<span class="material-icons">content_copy</span>`;
+        const newBtnCopy = btnCopy.cloneNode(true);
+        btnCopy.parentNode.replaceChild(newBtnCopy, btnCopy);
+        newBtnCopy.onclick = async () => {
+            await copyStatBlockText(beast);
+            newBtnCopy.innerHTML = `<span class="material-icons" style="color:var(--star-color);">check</span>`;
+            setTimeout(() => {
+                newBtnCopy.innerHTML = `<span class="material-icons">content_copy</span>`;
+            }, 1200);
+        };
+    }
+
     const isSeen = !!char.seen[beast.name];
     const isFav = !!char.favs[beast.name];
     

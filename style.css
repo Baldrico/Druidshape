@@ -581,6 +581,34 @@ body.fullscreen-mode .device-frame {
 /* ============================================================
    Beast Details Screen & Stat Block
    ============================================================ */
+#modal-details,
+#modal-details .modal-content,
+#modal-details .modal-body,
+#modal-details .stat-block-wrapper,
+#modal-details .stat-block,
+#modal-details .details-container,
+#modal-details .details-container * {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#modal-details .modal-header h2 {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#modal-details ::selection {
+  background-color: rgba(56, 142, 60, 0.35);
+  color: inherit;
+}
+
+#modal-details button,
+#modal-details .icon-button,
+#modal-details .icon-button * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 .details-container {
   background-color: var(--content-bg);
   padding: 16px;
