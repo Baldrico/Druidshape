@@ -233,7 +233,7 @@ function getHomebrewSource() {
         hbSource = {
             id: 'homebrew',
             name: 'Homebrew',
-            filename: 'Homebrew.json',
+            filename: 'homebrew.json',
             isDefault: true,
             isHomebrew: true,
             enabled: true,
@@ -274,9 +274,9 @@ async function fetchDefaultSources() {
     // 1. Attempt to fetch from JSON files (available when running on a web server or GitHub Pages)
     try {
         const [beastsRes, volosRes, srd55Res] = await Promise.allSettled([
-            fetch('data/beasts.json'),
+            fetch('data/2014_beasts.json'),
             fetch('data/volos.json'),
-            fetch('data/core_5_5e_srd_beasts.json')
+            fetch('data/2024_beasts.json')
         ]);
         
         if (beastsRes.status === 'fulfilled' && beastsRes.value.ok) {
@@ -303,7 +303,7 @@ async function fetchDefaultSources() {
         const coreSource = {
             id: 'core-5e',
             name: 'Core 5e SRD Beasts',
-            filename: 'beasts.json',
+            filename: '2014_beasts.json',
             isDefault: true,
             enabled: true,
             beasts: normalizeBeasts(beastsData, 'core-5e', 'Core 5e SRD')
@@ -316,7 +316,7 @@ async function fetchDefaultSources() {
         const srd55Source = {
             id: 'core-5.5e',
             name: 'Core 5.5e SRD Beasts',
-            filename: 'core_5_5e_srd_beasts.json',
+            filename: '2024_beasts.json',
             isDefault: true,
             enabled: true,
             beasts: normalizeBeasts(srd55Data, 'core-5.5e', 'Core 5.5e SRD')
@@ -338,11 +338,11 @@ async function fetchDefaultSources() {
         loaded.push(volosSource);
     }
 
-    // Always include a blank Homebrew.json source
+    // Always include a blank homebrew.json source
     const hbSource = {
         id: 'homebrew',
         name: 'Homebrew',
-        filename: 'Homebrew.json',
+        filename: 'homebrew.json',
         isDefault: true,
         isHomebrew: true,
         enabled: true,
@@ -407,7 +407,7 @@ async function init() {
     if (!state.dataSources.some(s => s.id === 'core-5.5e')) {
         let srd55Data = null;
         try {
-            const res = await fetch('data/core_5_5e_srd_beasts.json');
+            const res = await fetch('data/2024_beasts.json');
             if (res.ok) {
                 srd55Data = await res.json();
             }
@@ -423,7 +423,7 @@ async function init() {
             const srd55Source = {
                 id: 'core-5.5e',
                 name: 'Core 5.5e SRD Beasts',
-                filename: 'core_5_5e_srd_beasts.json',
+                filename: '2024_beasts.json',
                 isDefault: true,
                 enabled: true,
                 beasts: normalizeBeasts(srd55Data, 'core-5.5e', 'Core 5.5e SRD')
@@ -437,8 +437,22 @@ async function init() {
             }
         }
     }
+
+    // Auto-migrate stored filenames to new standard naming convention
+    state.dataSources.forEach(src => {
+        if (src.id === 'core-5e' && src.filename !== '2014_beasts.json') {
+            src.filename = '2014_beasts.json';
+            SourceDB.put(src);
+        } else if (src.id === 'core-5.5e' && src.filename !== '2024_beasts.json') {
+            src.filename = '2024_beasts.json';
+            SourceDB.put(src);
+        } else if (src.id === 'homebrew' && src.filename !== 'homebrew.json') {
+            src.filename = 'homebrew.json';
+            SourceDB.put(src);
+        }
+    });
     
-    // Ensure Homebrew.json source is always present and active
+    // Ensure homebrew.json source is always present and active
     const hb = getHomebrewSource();
     if (Array.isArray(state.homebrew) && state.homebrew.length > 0) {
         state.homebrew.forEach(b => {
@@ -1217,7 +1231,7 @@ function renderStatBlock(beast) {
     `;
 }
 
-// Homebrew Management (Stores directly into Homebrew.json Data Source)
+// Homebrew Management (Stores directly into homebrew.json Data Source)
 function renderHomebrewList() {
     els.homebrewList.innerHTML = '';
     const hbSource = getHomebrewSource();
@@ -1478,7 +1492,7 @@ async function deleteSource(sourceId, event) {
     
     if (src.id === 'homebrew') {
         const count = src.beasts ? src.beasts.length : 0;
-        if (!confirm(`Clear all ${count} custom beasts from Homebrew.json?`)) return;
+        if (!confirm(`Clear all ${count} custom beasts from homebrew.json?`)) return;
         src.beasts = [];
         await SourceDB.put(src);
         renderDataSources();
@@ -1534,7 +1548,7 @@ async function reloadDefaultSources() {
         renderBeasts();
         alert(`Successfully reloaded ${loaded.length} default sources!`);
     } else {
-        alert("Could not fetch default JSON files automatically. If running directly from the filesystem (file://), use 'Import JSON' to select beasts.json, core_5_5e_srd_beasts.json, or volos.json from your data folder.");
+        alert("Could not fetch default JSON files automatically. If running directly from the filesystem (file://), use 'Import JSON' to select 2014_beasts.json, 2024_beasts.json, or volos.json from your data folder.");
     }
 }
 
