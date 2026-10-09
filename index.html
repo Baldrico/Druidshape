@@ -138,6 +138,17 @@
                         <input type="text" id="new-character-name" placeholder="New character name">
                         <button id="btn-add-character" class="btn btn-primary">Add</button>
                     </div>
+                    <div class="character-modal-actions">
+                        <button id="btn-import-character" class="btn" title="Import Character JSON">
+                            <span class="material-icons" style="font-size: 18px;">upload_file</span>
+                            <span>Import Character</span>
+                        </button>
+                        <button id="btn-export-character" class="btn" title="Export Selected Character">
+                            <span class="material-icons" style="font-size: 18px;">download</span>
+                            <span>Export Character</span>
+                        </button>
+                        <input type="file" id="character-upload-input" style="display: none;" accept=".json" multiple>
+                    </div>
                 </div>
             </div>
         </div>

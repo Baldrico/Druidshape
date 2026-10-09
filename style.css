@@ -1498,6 +1498,10 @@ main#content-area {
   border-bottom: 1px solid var(--divider-color);
   padding: 12px;
 }
+.simple-list .list-item.active {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-left: 3px solid var(--header-color);
+}
 .add-character-form {
   display: flex;
   gap: 8px;
@@ -1510,6 +1514,23 @@ main#content-area {
   border-radius: 4px;
   background-color: transparent;
   color: var(--text-color);
+}
+.character-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--divider-color);
+}
+.character-modal-actions .btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
 }
 
 /* Homebrew Form Styles */

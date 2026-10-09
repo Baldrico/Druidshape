@@ -569,6 +569,16 @@ function setupEventListeners() {
     // Character Select
     document.getElementById('btn-character-select').addEventListener('click', () => openModal(els.modalChars));
     document.getElementById('btn-add-character').addEventListener('click', addCharacter);
+    const btnImportChar = document.getElementById('btn-import-character');
+    const charUploadInput = document.getElementById('character-upload-input');
+    const btnExportChar = document.getElementById('btn-export-character');
+    if (btnImportChar && charUploadInput) {
+        btnImportChar.addEventListener('click', () => charUploadInput.click());
+        charUploadInput.addEventListener('change', handleCharacterUpload);
+    }
+    if (btnExportChar) {
+        btnExportChar.addEventListener('click', (e) => exportCharacter(state.selectedCharacterId, e));
+    }
     
     // Filters Menu
     document.getElementById('btn-filter-menu').addEventListener('click', () => openModal(els.modalFilters));
@@ -898,12 +908,15 @@ function renderCharacters() {
                 <div class="list-item-title">${c.name}</div>
                 <div class="list-item-subtitle">Level ${c.level} ${c.isMoon ? '(Moon)' : ''}</div>
             </div>
-            ${state.characters.length > 1 ? `
             <div class="list-item-actions">
-                <button class="icon-button" onclick="deleteCharacter(${c.id}, event)">
-                    <span class="material-icons" style="color:var(--error-color);">delete</span>
+                <button class="icon-button" title="Export Character" onclick="exportCharacter(${c.id}, event)">
+                    <span class="material-icons">download</span>
                 </button>
-            </div>` : ''}
+                ${state.characters.length > 1 ? `
+                <button class="icon-button" title="Delete Character" onclick="deleteCharacter(${c.id}, event)">
+                    <span class="material-icons" style="color:var(--error-color);">delete</span>
+                </button>` : ''}
+            </div>
         `;
         li.onclick = (e) => {
             if (!e.target.closest('button')) {
@@ -932,7 +945,7 @@ function addCharacter() {
 }
 
 function deleteCharacter(id, event) {
-    event.stopPropagation();
+    if (event) event.stopPropagation();
     state.characters = state.characters.filter(c => c.id !== id);
     if (state.selectedCharacterId === id) {
         state.selectedCharacterId = state.characters[0].id;
@@ -941,6 +954,114 @@ function deleteCharacter(id, event) {
     renderApp();
     renderCharacters();
 }
+
+function exportCharacter(id, event) {
+    if (event) event.stopPropagation();
+    const char = (id !== undefined && id !== null)
+        ? state.characters.find(c => c.id === id)
+        : getCharacter();
+    if (!char) return;
+
+    const exportData = {
+        druidshape_character: true,
+        version: 1,
+        name: char.name,
+        level: typeof char.level === 'number' ? char.level : 0,
+        isMoon: Boolean(char.isMoon),
+        favs: char.favs || {},
+        seen: char.seen || {}
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = (char.name || 'character').toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
+    a.download = `${safeName || 'character'}_character.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function handleCharacterUpload(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    let importedCount = 0;
+    let lastImportedId = null;
+
+    for (const file of files) {
+        try {
+            const text = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+
+            const parsed = JSON.parse(text);
+            let rawList = [];
+
+            if (Array.isArray(parsed)) {
+                rawList = parsed;
+            } else if (parsed && Array.isArray(parsed.characters)) {
+                rawList = parsed.characters;
+            } else if (parsed && typeof parsed === 'object') {
+                rawList = [parsed];
+            }
+
+            for (const item of rawList) {
+                if (!item || typeof item !== 'object') continue;
+
+                const baseName = (typeof item.name === 'string' && item.name.trim())
+                    ? item.name.trim()
+                    : file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
+
+                let uniqueName = baseName;
+                let count = 1;
+                while (state.characters.some(c => c.name.toLowerCase() === uniqueName.toLowerCase())) {
+                    count++;
+                    uniqueName = `${baseName} (${count})`;
+                }
+
+                const newChar = {
+                    id: Date.now() + Math.floor(Math.random() * 10000),
+                    name: uniqueName,
+                    level: (typeof item.level === 'number' && item.level >= 0 && item.level <= 20)
+                        ? item.level
+                        : (parseInt(item.level, 10) || 0),
+                    isMoon: Boolean(item.isMoon),
+                    favs: (item.favs && typeof item.favs === 'object' && !Array.isArray(item.favs)) ? { ...item.favs } : {},
+                    seen: (item.seen && typeof item.seen === 'object' && !Array.isArray(item.seen)) ? { ...item.seen } : {}
+                };
+
+                state.characters.push(newChar);
+                lastImportedId = newChar.id;
+                importedCount++;
+            }
+        } catch (err) {
+            console.error("Failed to parse character JSON:", err);
+            alert(`Failed to import "${file.name}": Invalid JSON format.`);
+        }
+    }
+
+    event.target.value = '';
+
+    if (importedCount > 0) {
+        if (lastImportedId) {
+            state.selectedCharacterId = lastImportedId;
+        }
+        saveState();
+        renderApp();
+        renderCharacters();
+        alert(`Successfully imported ${importedCount} character(s)!`);
+    }
+}
+
+window.exportCharacter = exportCharacter;
+window.deleteCharacter = deleteCharacter;
+window.addCharacter = addCharacter;
 
 // Beast Details
 let currentDetailBeast = null;
