@@ -887,7 +887,7 @@ function openHomebrewEditor(index = -1) {
     
     // Populate copy select
     copySelect.innerHTML = '<option value="">-- Copy from existing --</option>';
-    getAllAvailableBeasts().sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
+    getActiveBeasts().sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
         const opt = document.createElement('option');
         opt.value = b.name;
         opt.textContent = `${b.name} (${b._sourceName || 'Core'})`;
@@ -908,7 +908,7 @@ function openHomebrewEditor(index = -1) {
 function handleCopyFromChanged(e) {
     const name = e.target.value;
     if (!name) return;
-    const beast = getAllAvailableBeasts().find(b => b.name === name);
+    const beast = getActiveBeasts().find(b => b.name === name);
     if (beast) {
         populateHomebrewForm(beast);
     }
