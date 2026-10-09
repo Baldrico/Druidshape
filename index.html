@@ -83,6 +83,13 @@
                             <span class="slider round"></span>
                         </label>
                     </div>
+                    <div class="setting-item clickable" id="btn-data-sources">
+                        <div class="setting-text">
+                            <h3>Data Sources</h3>
+                            <p>Manage and select beast JSON compendiums</p>
+                        </div>
+                        <span class="material-icons">menu_book</span>
+                    </div>
                     <div class="setting-item clickable" id="btn-export-homebrew">
                         <div class="setting-text">
                             <h3>Export Homebrew</h3>
@@ -312,12 +319,42 @@
             </div>
         </div>
 
+        <!-- Data Sources Modal -->
+        <div id="modal-data-sources" class="modal-overlay full-screen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="icon-button close-modal"><span class="material-icons">arrow_back</span></button>
+                    <h2>Data Sources</h2>
+                    <button id="btn-quick-import-source" class="icon-button" title="Import JSON Source"><span class="material-icons">add</span></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="sources-toolbar">
+                        <p class="sources-description">
+                            Toggle sources to control which beasts appear in your compendium, or load custom .json files.
+                        </p>
+                        <div class="sources-action-buttons">
+                            <button id="btn-import-source" class="btn btn-primary">
+                                <span class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:4px;">upload_file</span>
+                                Import JSON
+                            </button>
+                            <button id="btn-reset-sources" class="btn">
+                                <span class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:4px;">refresh</span>
+                                Reload Defaults
+                            </button>
+                            <input type="file" id="source-upload-input" style="display: none;" accept=".json" multiple>
+                        </div>
+                    </div>
+                    <div id="sources-list-container" class="sources-list-container">
+                        <!-- Data sources cards injected dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Data files -->
-    <script src="data/beasts.js"></script>
     <script src="data/iap.js"></script>
-    <script src="data/volos.js"></script>
     <!-- App logic -->
     <script src="app.js"></script>
 </body>

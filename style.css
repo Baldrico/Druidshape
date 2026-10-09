@@ -1559,3 +1559,172 @@ main#content-area {
   color: var(--header-color-light);
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
 }
+
+/* ============================================================
+   Data Sources Manager Styles
+   ============================================================ */
+.sources-toolbar {
+  padding: 16px;
+  background-color: var(--content-bg);
+  border-bottom: 1px solid var(--divider-color);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sources-description {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-color-secondary);
+  line-height: 1.4;
+}
+
+.sources-action-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sources-list-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--content-bg-dark);
+  min-height: calc(100% - 100px);
+}
+
+.source-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: var(--content-bg);
+  border: 1px solid var(--divider-color);
+  border-radius: 8px;
+  gap: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+
+.source-card.disabled {
+  opacity: 0.65;
+}
+
+.source-card-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.source-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: rgba(56, 142, 60, 0.12);
+  color: var(--header-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .source-icon {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-color-accent);
+}
+
+.source-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.source-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.source-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.source-badge.default {
+  background-color: rgba(56, 142, 60, 0.15);
+  color: var(--header-color);
+}
+
+.source-badge.custom {
+  background-color: rgba(25, 118, 210, 0.15);
+  color: #1976d2;
+}
+
+[data-theme="dark"] .source-badge.default {
+  background-color: rgba(95, 164, 99, 0.2);
+  color: #81c784;
+}
+
+[data-theme="dark"] .source-badge.custom {
+  background-color: rgba(66, 165, 245, 0.2);
+  color: #64b5f6;
+}
+
+.source-meta {
+  font-size: 13px;
+  color: var(--text-color-secondary);
+}
+
+.source-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.source-controls .switch {
+  margin-right: 4px;
+}
+
+.source-btn-delete {
+  color: var(--text-color-secondary);
+  transition: color 0.2s;
+}
+
+.source-btn-delete:hover, .source-btn-delete:active {
+  color: var(--alert-color);
+}
+
+.source-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-color-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.source-empty-state svg, .source-empty-state .material-icons {
+  font-size: 48px;
+  opacity: 0.5;
+}

@@ -1,11 +1,109 @@
-// App State & Data
-const ALL_BEASTS = (window.DEFAULT_BEASTS || []).concat(window.DEFAULT_VOLOS || []);
+// App State & Data Storage
+const SourceDB = {
+    db: null,
+    async init() {
+        if (!window.indexedDB) return false;
+        return new Promise(resolve => {
+            try {
+                const req = indexedDB.open('DruidshapeSourcesDB', 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('sources')) {
+                        db.createObjectStore('sources', { keyPath: 'id' });
+                    }
+                };
+                req.onsuccess = (e) => {
+                    SourceDB.db = e.target.result;
+                    resolve(true);
+                };
+                req.onerror = () => resolve(false);
+            } catch (err) {
+                resolve(false);
+            }
+        });
+    },
+    async getAll() {
+        if (SourceDB.db) {
+            return new Promise(resolve => {
+                try {
+                    const tx = SourceDB.db.transaction('sources', 'readonly');
+                    const store = tx.objectStore('sources');
+                    const req = store.getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => resolve(SourceDB.getFallback());
+                } catch (err) {
+                    resolve(SourceDB.getFallback());
+                }
+            });
+        }
+        return SourceDB.getFallback();
+    },
+    async put(source) {
+        if (SourceDB.db) {
+            await new Promise(resolve => {
+                try {
+                    const tx = SourceDB.db.transaction('sources', 'readwrite');
+                    const store = tx.objectStore('sources');
+                    const req = store.put(source);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = () => resolve(false);
+                } catch (err) {
+                    resolve(false);
+                }
+            });
+        }
+        SourceDB.putFallback(source);
+    },
+    async delete(id) {
+        if (SourceDB.db) {
+            await new Promise(resolve => {
+                try {
+                    const tx = SourceDB.db.transaction('sources', 'readwrite');
+                    const store = tx.objectStore('sources');
+                    const req = store.delete(id);
+                    req.onsuccess = () => resolve(true);
+                    req.onerror = () => resolve(false);
+                } catch (err) {
+                    resolve(false);
+                }
+            });
+        }
+        SourceDB.deleteFallback(id);
+    },
+    getFallback() {
+        try {
+            const raw = localStorage.getItem('druidshape_sources_cache');
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
+    },
+    putFallback(source) {
+        try {
+            const list = SourceDB.getFallback().filter(s => s.id !== source.id);
+            list.push(source);
+            localStorage.setItem('druidshape_sources_cache', JSON.stringify(list));
+        } catch (e) {
+            console.warn("Storage fallback quota exceeded", e);
+        }
+    },
+    deleteFallback(id) {
+        try {
+            const list = SourceDB.getFallback().filter(s => s.id !== id);
+            localStorage.setItem('druidshape_sources_cache', JSON.stringify(list));
+        } catch (e) {
+            console.warn("Storage fallback error", e);
+        }
+    }
+};
+
 let state = {
     darkMode: false,
     characters: [
         { id: 1, name: 'Default', level: 0, isMoon: false, favs: {}, seen: {} }
     ],
     selectedCharacterId: 1,
+    dataSources: [],
     homebrew: [],
     filters: {
         search: '',
@@ -59,6 +157,92 @@ function updateCharacter(updates) {
     renderApp();
 }
 
+function normalizeBeasts(rawArray, sourceId, sourceName) {
+    if (!Array.isArray(rawArray)) return [];
+    return rawArray.filter(b => b && b.name).map(b => {
+        const actions = b.actions || b.action || [];
+        const traits = b.traits || b.trait || [];
+        return {
+            ...b,
+            name: (b.name || '').trim(),
+            cr: (b.cr !== undefined ? b.cr : '0').toString(),
+            size: b.size || 'Medium',
+            type: b.type || 'beast',
+            actions: Array.isArray(actions) ? actions : [],
+            traits: Array.isArray(traits) ? traits : [],
+            _sourceId: sourceId,
+            _sourceName: sourceName
+        };
+    });
+}
+
+function getActiveBeasts() {
+    const active = [];
+    (state.dataSources || []).forEach(src => {
+        if (src.enabled && Array.isArray(src.beasts)) {
+            active.push(...src.beasts);
+        }
+    });
+    if (Array.isArray(state.homebrew)) {
+        active.push(...state.homebrew);
+    }
+    return active;
+}
+
+function getAllAvailableBeasts() {
+    const all = [];
+    (state.dataSources || []).forEach(src => {
+        if (Array.isArray(src.beasts)) {
+            all.push(...src.beasts);
+        }
+    });
+    if (Array.isArray(state.homebrew)) {
+        all.push(...state.homebrew);
+    }
+    return all;
+}
+
+async function fetchDefaultSources() {
+    const loaded = [];
+    try {
+        const [beastsRes, volosRes] = await Promise.allSettled([
+            fetch('data/beasts.json'),
+            fetch('data/volos.json')
+        ]);
+        
+        if (beastsRes.status === 'fulfilled' && beastsRes.value.ok) {
+            const data = await beastsRes.value.json();
+            const coreSource = {
+                id: 'core-5e',
+                name: 'Core 5e Beasts',
+                filename: 'beasts.json',
+                isDefault: true,
+                enabled: true,
+                beasts: normalizeBeasts(data, 'core-5e', 'Core 5e Beasts')
+            };
+            await SourceDB.put(coreSource);
+            loaded.push(coreSource);
+        }
+        
+        if (volosRes.status === 'fulfilled' && volosRes.value.ok) {
+            const data = await volosRes.value.json();
+            const volosSource = {
+                id: 'volos-guide',
+                name: "Volo's Guide to Monsters",
+                filename: 'volos.json',
+                isDefault: true,
+                enabled: true,
+                beasts: normalizeBeasts(data, 'volos-guide', "Volo's Guide to Monsters")
+            };
+            await SourceDB.put(volosSource);
+            loaded.push(volosSource);
+        }
+    } catch (e) {
+        console.warn("Could not fetch default JSON datasets over network", e);
+    }
+    return loaded;
+}
+
 // DOM Elements
 const els = {
     body: document.body,
@@ -80,6 +264,9 @@ const els = {
     modalDetails: document.getElementById('modal-details'),
     modalHomebrew: document.getElementById('modal-homebrew-editor'),
     modalTipJar: document.getElementById('modal-tip-jar'),
+    modalDataSources: document.getElementById('modal-data-sources'),
+    sourcesListContainer: document.getElementById('sources-list-container'),
+    sourceUploadInput: document.getElementById('source-upload-input'),
     
     // Filter toggles
     filterSeen: document.getElementById('filter-seen'),
@@ -89,12 +276,21 @@ const els = {
 };
 
 // Initialize App
-function init() {
+async function init() {
     loadState();
     setupEventListeners();
     populateDruidLevels();
     applyTheme();
     switchTab('beasts');
+    
+    // Initialize Data Sources
+    await SourceDB.init();
+    let sources = await SourceDB.getAll();
+    if (!sources || sources.length === 0) {
+        sources = await fetchDefaultSources();
+    }
+    state.dataSources = sources || [];
+    
     renderApp();
 }
 
@@ -145,6 +341,20 @@ function setupEventListeners() {
         saveState();
     });
     
+    // Data Sources
+    document.getElementById('btn-data-sources').addEventListener('click', () => {
+        openModal(els.modalDataSources);
+        renderDataSources();
+    });
+    document.getElementById('btn-import-source').addEventListener('click', () => {
+        els.sourceUploadInput.click();
+    });
+    document.getElementById('btn-quick-import-source').addEventListener('click', () => {
+        els.sourceUploadInput.click();
+    });
+    els.sourceUploadInput.addEventListener('change', handleSourceUpload);
+    document.getElementById('btn-reset-sources').addEventListener('click', reloadDefaultSources);
+
     document.getElementById('btn-export-homebrew').addEventListener('click', exportHomebrew);
     document.getElementById('btn-import-homebrew').addEventListener('click', () => document.getElementById('import-file-input').click());
     document.getElementById('import-file-input').addEventListener('change', importHomebrew);
@@ -152,7 +362,14 @@ function setupEventListeners() {
     document.getElementById('btn-tip-jar').addEventListener('click', () => {
         const list = document.getElementById('tip-list');
         list.innerHTML = '';
-        (window.DEFAULT_IAP || []).forEach(productId => {
+        const iapList = window.DEFAULT_IAP || [
+            "com.adpyke.druidshape.tip.nice",
+            "com.adpyke.druidshape.tip.kind",
+            "com.adpyke.druidshape.tip.generous",
+            "com.adpyke.druidshape.tip.amazing",
+            "com.adpyke.druidshape.tip.godzilla"
+        ];
+        iapList.forEach(productId => {
             const parts = productId.split('.');
             const namePart = parts[parts.length - 1];
             const displayName = namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' Tip';
@@ -293,7 +510,7 @@ function filterBeasts() {
     const flyAllowed = canFly(char.level);
     const elementalsAllowed = canBeElemental(char.level, char.isMoon);
     
-    let combined = [...ALL_BEASTS, ...state.homebrew];
+    let combined = getActiveBeasts();
 
     return combined.filter(b => {
         // Name Search
@@ -360,7 +577,7 @@ function renderBeasts() {
             item.innerHTML = `
                 <div class="list-item-content" onclick="showBeastDetails('${b.name.replace(/'/g, "\\'")}')">
                     <div class="list-item-title">${b.name}</div>
-                    <div class="list-item-subtitle">${b.size} ${b.type || 'beast'}</div>
+                    <div class="list-item-subtitle">${b.size} ${b.type || 'beast'}${b._sourceName ? ` • ${b._sourceName}` : ''}</div>
                 </div>
                 <div class="list-item-actions">
                     <button class="icon-button btn-seen ${isSeen ? 'active' : ''}" onclick="toggleSeen('${b.name.replace(/'/g, "\\'")}', event)">
@@ -462,7 +679,7 @@ function deleteCharacter(id, event) {
 let currentDetailBeast = null;
 
 function showBeastDetails(name) {
-    const beast = [...ALL_BEASTS, ...state.homebrew].find(b => b.name === name);
+    const beast = getActiveBeasts().find(b => b.name === name) || getAllAvailableBeasts().find(b => b.name === name);
     if (!beast) return;
     
     currentDetailBeast = beast;
@@ -557,6 +774,7 @@ function renderStatBlock(beast) {
             ${beast.senses ? `<div class="attribute-line"><span class="attribute-label">Senses</span> ${beast.senses}</div>` : ''}
             ${beast.languages ? `<div class="attribute-line"><span class="attribute-label">Languages</span> ${beast.languages}</div>` : ''}
             <div class="attribute-line"><span class="attribute-label">Challenge</span> ${beast.cr}</div>
+            <div class="attribute-line"><span class="attribute-label">Source</span> ${beast._sourceName || beast.source || 'Core 5e'}</div>
             
             <div class="stat-divider"></div>
             
@@ -612,10 +830,10 @@ function openHomebrewEditor(index = -1) {
     
     // Populate copy select
     copySelect.innerHTML = '<option value="">-- Copy from existing --</option>';
-    ALL_BEASTS.forEach(b => {
+    getAllAvailableBeasts().sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
         const opt = document.createElement('option');
         opt.value = b.name;
-        opt.textContent = b.name;
+        opt.textContent = `${b.name} (${b._sourceName || 'Core'})`;
         copySelect.appendChild(opt);
     });
 
@@ -633,7 +851,7 @@ function openHomebrewEditor(index = -1) {
 function handleCopyFromChanged(e) {
     const name = e.target.value;
     if (!name) return;
-    const beast = ALL_BEASTS.find(b => b.name === name);
+    const beast = getAllAvailableBeasts().find(b => b.name === name);
     if (beast) {
         populateHomebrewForm(beast);
     }
@@ -771,6 +989,191 @@ function importHomebrew(event) {
         event.target.value = ''; // Reset
     };
     reader.readAsText(file);
+}
+
+// ============================================================
+// Data Sources Management
+// ============================================================
+function renderDataSources() {
+    const container = els.sourcesListContainer;
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const sources = state.dataSources || [];
+    
+    if (sources.length === 0) {
+        container.innerHTML = `
+            <div class="source-empty-state">
+                <span class="material-icons">folder_off</span>
+                <h3 style="margin: 0; color: var(--text-color);">No Data Sources Active</h3>
+                <p style="margin: 0; max-width: 320px;">Load default sources from the data folder or import your own custom JSON compendiums.</p>
+                <div style="display:flex; gap:10px; margin-top:8px;">
+                    <button class="btn btn-primary" onclick="reloadDefaultSources()">Reload Defaults</button>
+                    <button class="btn" onclick="els.sourceUploadInput.click()">Import JSON</button>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    sources.forEach(src => {
+        const card = document.createElement('div');
+        card.className = `source-card ${src.enabled ? 'active' : 'disabled'}`;
+        card.innerHTML = `
+            <div class="source-card-main">
+                <div class="source-icon">
+                    <span class="material-icons">menu_book</span>
+                </div>
+                <div class="source-details">
+                    <div class="source-title-row">
+                        <span class="source-title">${src.name}</span>
+                        <span class="source-badge ${src.isDefault ? 'default' : 'custom'}">${src.isDefault ? 'Default' : 'Custom'}</span>
+                    </div>
+                    <div class="source-meta">
+                        ${src.beasts ? src.beasts.length : 0} beasts • ${src.filename || 'Custom JSON'}
+                    </div>
+                </div>
+            </div>
+            <div class="source-controls">
+                <label class="switch" title="${src.enabled ? 'Enabled in main list' : 'Disabled'}">
+                    <input type="checkbox" ${src.enabled ? 'checked' : ''} onchange="toggleSource('${src.id}')">
+                    <span class="slider round"></span>
+                </label>
+                <button class="icon-button" title="Export Source JSON" onclick="exportSource('${src.id}', event)">
+                    <span class="material-icons">download</span>
+                </button>
+                <button class="icon-button source-btn-delete" title="Delete Source" onclick="deleteSource('${src.id}', event)">
+                    <span class="material-icons">delete_outline</span>
+                </button>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+async function toggleSource(sourceId) {
+    const src = state.dataSources.find(s => s.id === sourceId);
+    if (!src) return;
+    src.enabled = !src.enabled;
+    await SourceDB.put(src);
+    renderDataSources();
+    renderBeasts();
+}
+
+async function deleteSource(sourceId, event) {
+    if (event) event.stopPropagation();
+    const src = state.dataSources.find(s => s.id === sourceId);
+    if (!src) return;
+    
+    const confirmMsg = src.isDefault
+        ? `Remove default source "${src.name}"? You can restore it anytime with "Reload Defaults".`
+        : `Are you sure you want to delete the source "${src.name}" (${src.beasts ? src.beasts.length : 0} beasts)?`;
+    
+    if (!confirm(confirmMsg)) return;
+    
+    await SourceDB.delete(sourceId);
+    state.dataSources = state.dataSources.filter(s => s.id !== sourceId);
+    renderDataSources();
+    renderBeasts();
+}
+
+function exportSource(sourceId, event) {
+    if (event) event.stopPropagation();
+    const src = state.dataSources.find(s => s.id === sourceId);
+    if (!src) return;
+    
+    const exportData = {
+        name: src.name,
+        count: src.beasts.length,
+        beasts: src.beasts
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (src.filename || src.name.toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.json');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function reloadDefaultSources() {
+    const loaded = await fetchDefaultSources();
+    if (loaded && loaded.length > 0) {
+        loaded.forEach(newSrc => {
+            const idx = state.dataSources.findIndex(s => s.id === newSrc.id);
+            if (idx >= 0) {
+                state.dataSources[idx] = newSrc;
+            } else {
+                state.dataSources.unshift(newSrc);
+            }
+        });
+        renderDataSources();
+        renderBeasts();
+        alert(`Successfully reloaded ${loaded.length} default sources!`);
+    } else {
+        alert("Could not fetch default JSON files automatically. If running directly from the filesystem (file://), use 'Import JSON' to select beasts.json or volos.json from your data folder.");
+    }
+}
+
+async function handleSourceUpload(event) {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    
+    let importedCount = 0;
+    for (const file of files) {
+        try {
+            const text = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+            
+            const parsed = JSON.parse(text);
+            let rawBeasts = [];
+            let sourceName = '';
+            
+            if (Array.isArray(parsed)) {
+                rawBeasts = parsed;
+                const baseName = file.name.replace(/\.[^/.]+$/, "");
+                sourceName = baseName.replace(/[-_]+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            } else if (typeof parsed === 'object' && parsed !== null) {
+                sourceName = parsed.name || parsed.title || parsed.source || file.name.replace(/\.[^/.]+$/, "");
+                rawBeasts = parsed.beasts || parsed.monsters || parsed.creatures || parsed.data || [];
+            }
+            
+            if (!Array.isArray(rawBeasts) || rawBeasts.length === 0) {
+                alert(`No beasts found in "${file.name}". Please ensure the JSON contains an array of beast objects.`);
+                continue;
+            }
+            
+            const sourceId = 'src-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+            const newSource = {
+                id: sourceId,
+                name: sourceName,
+                filename: file.name,
+                isDefault: false,
+                enabled: true,
+                beasts: normalizeBeasts(rawBeasts, sourceId, sourceName)
+            };
+            
+            await SourceDB.put(newSource);
+            state.dataSources.push(newSource);
+            importedCount++;
+        } catch (err) {
+            console.error("Error reading file", file.name, err);
+            alert(`Failed to import "${file.name}": Invalid JSON format.`);
+        }
+    }
+    
+    event.target.value = ''; // Reset file input
+    if (importedCount > 0) {
+        renderDataSources();
+        renderBeasts();
+        alert(`Successfully imported ${importedCount} data source(s)!`);
+    }
 }
 
 // Start app
