@@ -204,6 +204,10 @@ function getAllAvailableBeasts() {
 
 async function fetchDefaultSources() {
     const loaded = [];
+    let beastsData = null;
+    let volosData = null;
+
+    // 1. Attempt to fetch from JSON files (available when running on a web server or GitHub Pages)
     try {
         const [beastsRes, volosRes] = await Promise.allSettled([
             fetch('data/beasts.json'),
@@ -211,35 +215,49 @@ async function fetchDefaultSources() {
         ]);
         
         if (beastsRes.status === 'fulfilled' && beastsRes.value.ok) {
-            const data = await beastsRes.value.json();
-            const coreSource = {
-                id: 'core-5e',
-                name: 'Core 5e Beasts',
-                filename: 'beasts.json',
-                isDefault: true,
-                enabled: true,
-                beasts: normalizeBeasts(data, 'core-5e', 'Core 5e Beasts')
-            };
-            await SourceDB.put(coreSource);
-            loaded.push(coreSource);
+            beastsData = await beastsRes.value.json();
         }
-        
         if (volosRes.status === 'fulfilled' && volosRes.value.ok) {
-            const data = await volosRes.value.json();
-            const volosSource = {
-                id: 'volos-guide',
-                name: "Volo's Guide to Monsters",
-                filename: 'volos.json',
-                isDefault: true,
-                enabled: true,
-                beasts: normalizeBeasts(data, 'volos-guide', "Volo's Guide to Monsters")
-            };
-            await SourceDB.put(volosSource);
-            loaded.push(volosSource);
+            volosData = await volosRes.value.json();
         }
     } catch (e) {
-        console.warn("Could not fetch default JSON datasets over network", e);
+        console.warn("Network fetch not available, checking offline seed", e);
     }
+
+    // 2. Fallback to bundled offline seed if fetch is unavailable (e.g. running from local file://)
+    if (!beastsData && window.DEFAULT_BEASTS) {
+        beastsData = window.DEFAULT_BEASTS;
+    }
+    if (!volosData && window.DEFAULT_VOLOS) {
+        volosData = window.DEFAULT_VOLOS;
+    }
+
+    if (beastsData) {
+        const coreSource = {
+            id: 'core-5e',
+            name: 'Core 5e SRD Beasts',
+            filename: 'beasts.json',
+            isDefault: true,
+            enabled: true,
+            beasts: normalizeBeasts(beastsData, 'core-5e', 'Core 5e SRD')
+        };
+        await SourceDB.put(coreSource);
+        loaded.push(coreSource);
+    }
+
+    if (volosData) {
+        const volosSource = {
+            id: 'volos-guide',
+            name: "Volo's Guide to Monsters",
+            filename: 'volos.json',
+            isDefault: true,
+            enabled: true,
+            beasts: normalizeBeasts(volosData, 'volos-guide', "Volo's Guide")
+        };
+        await SourceDB.put(volosSource);
+        loaded.push(volosSource);
+    }
+
     return loaded;
 }
 
@@ -286,7 +304,8 @@ async function init() {
     // Initialize Data Sources
     await SourceDB.init();
     let sources = await SourceDB.getAll();
-    if (!sources || sources.length === 0) {
+    // If no sources exist, or existing sources have 0 beasts, populate defaults
+    if (!sources || sources.length === 0 || sources.every(s => !s.beasts || s.beasts.length === 0)) {
         sources = await fetchDefaultSources();
     }
     state.dataSources = sources || [];
