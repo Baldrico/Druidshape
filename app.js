@@ -22,6 +22,22 @@ const SourceDB = {
             }
         });
     },
+    async get(id) {
+        if (SourceDB.db) {
+            return new Promise(resolve => {
+                try {
+                    const tx = SourceDB.db.transaction('sources', 'readonly');
+                    const store = tx.objectStore('sources');
+                    const req = store.get(id);
+                    req.onsuccess = () => resolve(req.result || null);
+                    req.onerror = () => resolve((SourceDB.getFallback() || []).find(s => s.id === id) || null);
+                } catch (err) {
+                    resolve((SourceDB.getFallback() || []).find(s => s.id === id) || null);
+                }
+            });
+        }
+        return (SourceDB.getFallback() || []).find(s => s.id === id) || null;
+    },
     async getAll() {
         if (SourceDB.db) {
             return new Promise(resolve => {
@@ -97,7 +113,7 @@ const SourceDB = {
     }
 };
 
-const CURRENT_DATA_VERSION = 3;
+const CURRENT_DATA_VERSION = 4;
 
 let state = {
     dataVersion: 0,
@@ -342,7 +358,12 @@ async function fetchDefaultSources() {
     }
 
     // Always include homebrew.json source (preserving any existing custom beasts)
-    const existingHb = await SourceDB.get('homebrew');
+    let existingHb = null;
+    try {
+        existingHb = await SourceDB.get('homebrew');
+    } catch (e) {
+        console.warn("Could not read existing homebrew source", e);
+    }
     const hbSource = {
         id: 'homebrew',
         name: 'Homebrew',
@@ -436,6 +457,37 @@ async function init() {
         saveState();
     } else {
         state.dataSources = sources || [];
+    }
+
+    // Guarantee that all 3 default core sources (core-5e, core-5.5e, volos-guide) exist and contain beasts
+    const hasCore5e = state.dataSources.some(s => s.id === 'core-5e' && Array.isArray(s.beasts) && s.beasts.length > 0);
+    const hasCore55e = state.dataSources.some(s => s.id === 'core-5.5e' && Array.isArray(s.beasts) && s.beasts.length > 0);
+    const hasVolos = state.dataSources.some(s => s.id === 'volos-guide' && Array.isArray(s.beasts) && s.beasts.length > 0);
+
+    if (!hasCore5e || !hasCore55e || !hasVolos) {
+        const defaults = await fetchDefaultSources();
+        if (defaults && defaults.length > 0) {
+            defaults.forEach(defSrc => {
+                if (defSrc.id === 'homebrew') return;
+                const existingIdx = state.dataSources.findIndex(s => s.id === defSrc.id);
+                if (existingIdx >= 0) {
+                    if (!state.dataSources[existingIdx].beasts || state.dataSources[existingIdx].beasts.length === 0) {
+                        defSrc.enabled = state.dataSources[existingIdx].enabled !== undefined ? state.dataSources[existingIdx].enabled : true;
+                        state.dataSources[existingIdx] = defSrc;
+                        SourceDB.put(defSrc);
+                    }
+                } else {
+                    const coreIdx = state.dataSources.findIndex(s => s.id === 'core-5e');
+                    if (coreIdx >= 0 && defSrc.id === 'core-5.5e') {
+                        state.dataSources.splice(coreIdx + 1, 0, defSrc);
+                    } else {
+                        state.dataSources.unshift(defSrc);
+                    }
+                    SourceDB.put(defSrc);
+                }
+            });
+            saveState();
+        }
     }
     
     // Ensure homebrew.json source is always present and active
