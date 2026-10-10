@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
-    <link rel="stylesheet" href="style.css?v=2.0.2">
+    <link rel="stylesheet" href="style.css?v=2.0.3">
 </head>
 <body class="theme-light">
     <div id="app">
@@ -146,8 +146,8 @@
                             <span class="material-icons" style="font-size: 18px;">upload_file</span>
                             <span>Import Character</span>
                         </label>
-                        <input type="file" id="character-upload-input" style="display: none;" accept=".json" multiple onchange="handleCharacterUpload(event)">
-                        <button id="btn-export-character" class="btn" title="Export Selected Character" onclick="exportCharacter(state.selectedCharacterId, event)">
+                        <input type="file" id="character-upload-input" style="display: none;" accept=".json" multiple>
+                        <button id="btn-export-character" class="btn" title="Export Selected Character">
                             <span class="material-icons" style="font-size: 18px;">download</span>
                             <span>Export Character</span>
                         </button>
@@ -341,7 +341,7 @@
                                 <span class="material-icons" style="font-size:18px; vertical-align:middle; margin-right:4px;">refresh</span>
                                 Reload Defaults
                             </button>
-                            <input type="file" id="source-upload-input" style="display: none;" accept=".json" multiple onchange="handleSourceUpload(event)">
+                            <input type="file" id="source-upload-input" style="display: none;" accept=".json" multiple>
                         </div>
                     </div>
                     <div id="sources-list-container" class="sources-list-container">
@@ -354,8 +354,8 @@
     </div>
 
     <!-- Fallback default data for local file:// usage -->
-    <script src="data/default_data.js?v=2.0.2"></script>
+    <script src="data/default_data.js?v=2.0.3"></script>
     <!-- App logic -->
-    <script src="app.js?v=2.0.2"></script>
+    <script src="app.js?v=2.0.3"></script>
 </body>
 </html>

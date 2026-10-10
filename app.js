@@ -640,12 +640,21 @@ function setupEventListeners() {
         openModal(els.modalDataSources);
         renderDataSources();
     });
-    document.getElementById('btn-import-source').addEventListener('click', () => {
-        els.sourceUploadInput.click();
-    });
-    document.getElementById('btn-quick-import-source').addEventListener('click', () => {
-        els.sourceUploadInput.click();
-    });
+    const btnImportSource = document.getElementById('btn-import-source');
+    if (btnImportSource) {
+        btnImportSource.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                els.sourceUploadInput.click();
+            }
+        });
+    }
+    const btnQuickImportSource = document.getElementById('btn-quick-import-source');
+    if (btnQuickImportSource) {
+        btnQuickImportSource.addEventListener('click', () => {
+            els.sourceUploadInput.click();
+        });
+    }
     els.sourceUploadInput.addEventListener('change', handleSourceUpload);
     document.getElementById('btn-reset-sources').addEventListener('click', reloadDefaultSources);
     
@@ -1011,78 +1020,84 @@ function exportCharacter(id, event) {
     URL.revokeObjectURL(url);
 }
 
+let isImportingCharacter = false;
 async function handleCharacterUpload(event) {
+    if (isImportingCharacter) return;
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
+    isImportingCharacter = true;
 
     let importedCount = 0;
     let lastImportedId = null;
 
-    for (const file of files) {
-        try {
-            const text = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsText(file);
-            });
+    try {
+        for (const file of files) {
+            try {
+                const text = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
 
-            const parsed = JSON.parse(text);
-            let rawList = [];
+                const parsed = JSON.parse(text);
+                let rawList = [];
 
-            if (Array.isArray(parsed)) {
-                rawList = parsed;
-            } else if (parsed && Array.isArray(parsed.characters)) {
-                rawList = parsed.characters;
-            } else if (parsed && typeof parsed === 'object') {
-                rawList = [parsed];
-            }
-
-            for (const item of rawList) {
-                if (!item || typeof item !== 'object') continue;
-
-                const baseName = (typeof item.name === 'string' && item.name.trim())
-                    ? item.name.trim()
-                    : file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
-
-                let uniqueName = baseName;
-                let count = 1;
-                while (state.characters.some(c => c.name.toLowerCase() === uniqueName.toLowerCase())) {
-                    count++;
-                    uniqueName = `${baseName} (${count})`;
+                if (Array.isArray(parsed)) {
+                    rawList = parsed;
+                } else if (parsed && Array.isArray(parsed.characters)) {
+                    rawList = parsed.characters;
+                } else if (parsed && typeof parsed === 'object') {
+                    rawList = [parsed];
                 }
 
-                const newChar = {
-                    id: Date.now() + Math.floor(Math.random() * 10000),
-                    name: uniqueName,
-                    level: (typeof item.level === 'number' && item.level >= 0 && item.level <= 20)
-                        ? item.level
-                        : (parseInt(item.level, 10) || 0),
-                    isMoon: Boolean(item.isMoon),
-                    favs: (item.favs && typeof item.favs === 'object' && !Array.isArray(item.favs)) ? { ...item.favs } : {},
-                    seen: (item.seen && typeof item.seen === 'object' && !Array.isArray(item.seen)) ? { ...item.seen } : {}
-                };
+                for (const item of rawList) {
+                    if (!item || typeof item !== 'object') continue;
 
-                state.characters.push(newChar);
-                lastImportedId = newChar.id;
-                importedCount++;
+                    const baseName = (typeof item.name === 'string' && item.name.trim())
+                        ? item.name.trim()
+                        : file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, ' ');
+
+                    let uniqueName = baseName;
+                    let count = 1;
+                    while (state.characters.some(c => c.name.toLowerCase() === uniqueName.toLowerCase())) {
+                        count++;
+                        uniqueName = `${baseName} (${count})`;
+                    }
+
+                    const newChar = {
+                        id: Date.now() + Math.floor(Math.random() * 10000),
+                        name: uniqueName,
+                        level: (typeof item.level === 'number' && item.level >= 0 && item.level <= 20)
+                            ? item.level
+                            : (parseInt(item.level, 10) || 0),
+                        isMoon: Boolean(item.isMoon),
+                        favs: (item.favs && typeof item.favs === 'object' && !Array.isArray(item.favs)) ? { ...item.favs } : {},
+                        seen: (item.seen && typeof item.seen === 'object' && !Array.isArray(item.seen)) ? { ...item.seen } : {}
+                    };
+
+                    state.characters.push(newChar);
+                    lastImportedId = newChar.id;
+                    importedCount++;
+                }
+            } catch (err) {
+                console.error("Failed to parse character JSON:", err);
+                alert(`Failed to import "${file.name}": Invalid JSON format.`);
             }
-        } catch (err) {
-            console.error("Failed to parse character JSON:", err);
-            alert(`Failed to import "${file.name}": Invalid JSON format.`);
         }
-    }
 
-    event.target.value = '';
-
-    if (importedCount > 0) {
-        if (lastImportedId) {
-            state.selectedCharacterId = lastImportedId;
+        if (importedCount > 0) {
+            if (lastImportedId) {
+                state.selectedCharacterId = lastImportedId;
+            }
+            saveState();
+            renderApp();
+            renderCharacters();
+            alert(`Successfully imported ${importedCount} character(s)!`);
         }
-        saveState();
-        renderApp();
-        renderCharacters();
-        alert(`Successfully imported ${importedCount} character(s)!`);
+    } finally {
+        if (event.target) event.target.value = '';
+        isImportingCharacter = false;
     }
 }
 
@@ -1721,62 +1736,69 @@ async function reloadDefaultSources() {
     }
 }
 
+let isImportingSource = false;
 async function handleSourceUpload(event) {
+    if (isImportingSource) return;
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
+    isImportingSource = true;
     
     let importedCount = 0;
-    for (const file of files) {
-        try {
-            const text = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsText(file);
-            });
-            
-            const parsed = JSON.parse(text);
-            let rawBeasts = [];
-            let sourceName = '';
-            
-            if (Array.isArray(parsed)) {
-                rawBeasts = parsed;
-                const baseName = file.name.replace(/\.[^/.]+$/, "");
-                sourceName = baseName.replace(/[-_]+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            } else if (typeof parsed === 'object' && parsed !== null) {
-                sourceName = parsed.name || parsed.title || parsed.source || file.name.replace(/\.[^/.]+$/, "");
-                rawBeasts = parsed.beasts || parsed.monsters || parsed.creatures || parsed.data || [];
+    try {
+        for (const file of files) {
+            try {
+                const text = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsText(file);
+                });
+                
+                const parsed = JSON.parse(text);
+                let rawBeasts = [];
+                let sourceName = '';
+                
+                if (Array.isArray(parsed)) {
+                    rawBeasts = parsed;
+                    const baseName = file.name.replace(/\.[^/.]+$/, "");
+                    sourceName = baseName.replace(/[-_]+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                } else if (typeof parsed === 'object' && parsed !== null) {
+                    sourceName = parsed.name || parsed.title || parsed.source || file.name.replace(/\.[^/.]+$/, "");
+                    rawBeasts = parsed.beasts || parsed.monsters || parsed.creatures || parsed.data || [];
+                }
+                
+                if (!Array.isArray(rawBeasts) || rawBeasts.length === 0) {
+                    alert(`No beasts found in "${file.name}". Please ensure the JSON contains an array of beast objects.`);
+                    continue;
+                }
+                
+                const sourceId = 'src-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+                const newSource = {
+                    id: sourceId,
+                    name: sourceName,
+                    filename: file.name,
+                    isDefault: false,
+                    enabled: true,
+                    beasts: normalizeBeasts(rawBeasts, sourceId, sourceName)
+                };
+                
+                await SourceDB.put(newSource);
+                state.dataSources.push(newSource);
+                importedCount++;
+            } catch (err) {
+                console.error("Error reading file", file.name, err);
+                alert(`Failed to import "${file.name}": Invalid JSON format.`);
             }
-            
-            if (!Array.isArray(rawBeasts) || rawBeasts.length === 0) {
-                alert(`No beasts found in "${file.name}". Please ensure the JSON contains an array of beast objects.`);
-                continue;
-            }
-            
-            const sourceId = 'src-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-            const newSource = {
-                id: sourceId,
-                name: sourceName,
-                filename: file.name,
-                isDefault: false,
-                enabled: true,
-                beasts: normalizeBeasts(rawBeasts, sourceId, sourceName)
-            };
-            
-            await SourceDB.put(newSource);
-            state.dataSources.push(newSource);
-            importedCount++;
-        } catch (err) {
-            console.error("Error reading file", file.name, err);
-            alert(`Failed to import "${file.name}": Invalid JSON format.`);
         }
-    }
-    
-    event.target.value = ''; // Reset file input
-    if (importedCount > 0) {
-        renderDataSources();
-        renderBeasts();
-        alert(`Successfully imported ${importedCount} data source(s)!`);
+        
+        if (importedCount > 0) {
+            renderDataSources();
+            renderBeasts();
+            alert(`Successfully imported ${importedCount} data source(s)!`);
+        }
+    } finally {
+        if (event.target) event.target.value = '';
+        isImportingSource = false;
     }
 }
 
