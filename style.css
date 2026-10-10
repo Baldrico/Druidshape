@@ -1826,3 +1826,150 @@ main#content-area {
   font-size: 48px;
   opacity: 0.5;
 }
+
+/* ============================================================
+   Stat Block In-Place Edit Mode
+   ============================================================ */
+.stat-edit-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: rgba(25, 118, 210, 0.12);
+  color: #1976d2;
+  border-left: 4px solid #1976d2;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.stat-edit-banner.core-info {
+  background-color: rgba(230, 81, 0, 0.12);
+  color: #d84315;
+  border-left-color: #d84315;
+}
+
+[data-theme="dark"] .stat-edit-banner {
+  background-color: rgba(66, 165, 245, 0.15);
+  color: #90caf9;
+  border-left-color: #42a5f5;
+}
+
+[data-theme="dark"] .stat-edit-banner.core-info {
+  background-color: rgba(255, 112, 67, 0.15);
+  color: #ffab91;
+  border-left-color: #ff7043;
+}
+
+.stat-inline-input,
+.stat-inline-select,
+.stat-inline-textarea {
+  background: var(--content-bg);
+  border: 1px solid var(--divider-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.stat-inline-input:focus,
+.stat-inline-select:focus,
+.stat-inline-textarea:focus {
+  outline: none;
+  border-color: var(--header-color);
+  box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.2);
+}
+
+.beast-title-input {
+  font-size: 22px;
+  font-weight: 700;
+  width: 100%;
+  margin-top: 4px;
+  color: var(--text-color-accent);
+}
+
+.stat-inline-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.short-input {
+  width: 75px;
+}
+
+.medium-input {
+  width: 120px;
+}
+
+.stat-score-input {
+  width: 52px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px;
+  border: 1px solid var(--divider-color);
+  border-radius: 4px;
+  background: var(--content-bg);
+  color: var(--text-color);
+}
+
+.stat-score-input:focus {
+  outline: none;
+  border-color: var(--header-color);
+  box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.2);
+}
+
+.edit-trait-item {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--divider-color);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+[data-theme="dark"] .edit-trait-item {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.edit-trait-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.trait-name-input {
+  font-weight: 700;
+  flex: 1;
+}
+
+.stat-inline-textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 52px;
+  line-height: 1.4;
+}
+
+.stat-edit-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.stat-edit-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 0 8px 0;
+  border-top: 1px solid var(--divider-color);
+  margin-top: 18px;
+}

@@ -766,6 +766,9 @@ function openModal(modal) {
 }
 
 function closeModal(modal) {
+    if (modal === els.modalDetails) {
+        isStatBlockEditing = false;
+    }
     modal.classList.remove('open');
 }
 
@@ -1108,6 +1111,7 @@ window.handleCharacterUpload = handleCharacterUpload;
 
 // Beast Details
 let currentDetailBeast = null;
+let isStatBlockEditing = false;
 
 const CR_XP_MAP = {
     '0': '10',
@@ -1269,53 +1273,412 @@ function showBeastDetails(name) {
     if (!beast) return;
     
     currentDetailBeast = beast;
-    const char = getCharacter();
+    isStatBlockEditing = false;
     
     document.getElementById('detail-name').textContent = beast.name;
-    
+    setupDetailHeaderButtons(beast);
+    renderStatBlock(beast);
+    openModal(els.modalDetails);
+}
+
+function setupDetailHeaderButtons(beast) {
+    const headerActions = document.querySelector('#modal-details .header-actions');
+    if (!headerActions) return;
+
+    if (isStatBlockEditing) {
+        headerActions.innerHTML = `
+            <button id="detail-btn-cancel" class="icon-button" title="Cancel Edit"><span class="material-icons">close</span></button>
+            <button id="detail-btn-save" class="icon-button" title="Save Changes" style="color:var(--header-color);"><span class="material-icons">check</span></button>
+        `;
+        document.getElementById('detail-btn-cancel').onclick = () => exitStatBlockEditMode(false);
+        document.getElementById('detail-btn-save').onclick = () => saveStatBlockEdits();
+        return;
+    }
+
+    const char = getCharacter();
+    const isSeen = !!char.seen[beast.name];
+    const isFav = !!char.favs[beast.name];
+
+    headerActions.innerHTML = `
+        <button id="detail-btn-copy" class="icon-button" title="Copy Stat Block"><span class="material-icons">content_copy</span></button>
+        <button id="detail-btn-edit" class="icon-button" title="Edit Stat Block"><span class="material-icons">edit</span></button>
+        <button id="detail-btn-seen" class="icon-button" title="Toggle Seen"><span class="material-icons">${isSeen ? 'visibility' : 'visibility_off'}</span></button>
+        <button id="detail-btn-fav" class="icon-button" title="Toggle Favorite"><span class="material-icons">${isFav ? 'star' : 'star_border'}</span></button>
+    `;
+
     const btnCopy = document.getElementById('detail-btn-copy');
-    const btnSeen = document.getElementById('detail-btn-seen');
-    const btnFav = document.getElementById('detail-btn-fav');
-    
     if (btnCopy) {
-        btnCopy.innerHTML = `<span class="material-icons">content_copy</span>`;
-        const newBtnCopy = btnCopy.cloneNode(true);
-        btnCopy.parentNode.replaceChild(newBtnCopy, btnCopy);
-        newBtnCopy.onclick = async () => {
+        btnCopy.onclick = async () => {
             await copyStatBlockText(beast);
-            newBtnCopy.innerHTML = `<span class="material-icons" style="color:var(--star-color);">check</span>`;
+            btnCopy.innerHTML = `<span class="material-icons" style="color:var(--star-color);">check</span>`;
             setTimeout(() => {
-                newBtnCopy.innerHTML = `<span class="material-icons">content_copy</span>`;
+                btnCopy.innerHTML = `<span class="material-icons">content_copy</span>`;
             }, 1200);
         };
     }
 
-    const isSeen = !!char.seen[beast.name];
-    const isFav = !!char.favs[beast.name];
-    
-    btnSeen.innerHTML = `<span class="material-icons">${isSeen ? 'visibility' : 'visibility_off'}</span>`;
-    btnFav.innerHTML = `<span class="material-icons">${isFav ? 'star' : 'star_border'}</span>`;
-    
-    // Clear old listeners
-    const newBtnSeen = btnSeen.cloneNode(true);
-    btnSeen.parentNode.replaceChild(newBtnSeen, btnSeen);
-    newBtnSeen.onclick = () => {
-        toggleSeen(beast.name, {stopPropagation:()=>{}});
-        const updatedIsSeen = !!char.seen[beast.name];
-        newBtnSeen.innerHTML = `<span class="material-icons">${updatedIsSeen ? 'visibility' : 'visibility_off'}</span>`;
-    };
-    
-    const newBtnFav = btnFav.cloneNode(true);
-    btnFav.parentNode.replaceChild(newBtnFav, btnFav);
-    newBtnFav.onclick = () => {
-        toggleFav(beast.name, {stopPropagation:()=>{}});
-        const updatedIsFav = !!char.favs[beast.name];
-        newBtnFav.innerHTML = `<span class="material-icons">${updatedIsFav ? 'star' : 'star_border'}</span>`;
+    const btnEdit = document.getElementById('detail-btn-edit');
+    if (btnEdit) {
+        btnEdit.onclick = () => enterStatBlockEditMode();
+    }
+
+    const btnSeen = document.getElementById('detail-btn-seen');
+    if (btnSeen) {
+        btnSeen.onclick = () => {
+            toggleSeen(beast.name, { stopPropagation: () => {} });
+            const updatedIsSeen = !!char.seen[beast.name];
+            btnSeen.innerHTML = `<span class="material-icons">${updatedIsSeen ? 'visibility' : 'visibility_off'}</span>`;
+        };
+    }
+
+    const btnFav = document.getElementById('detail-btn-fav');
+    if (btnFav) {
+        btnFav.onclick = () => {
+            toggleFav(beast.name, { stopPropagation: () => {} });
+            const updatedIsFav = !!char.favs[beast.name];
+            btnFav.innerHTML = `<span class="material-icons">${updatedIsFav ? 'star' : 'star_border'}</span>`;
+        };
+    }
+}
+
+function enterStatBlockEditMode() {
+    if (!currentDetailBeast) return;
+    isStatBlockEditing = true;
+    setupDetailHeaderButtons(currentDetailBeast);
+    renderStatBlockEditMode(currentDetailBeast);
+}
+
+function renderStatBlockEditMode(beast) {
+    const sb = document.getElementById('stat-block-content');
+    const isCore = beast._sourceId === 'core-5e' ||
+                   beast._sourceId === 'core-5.5e' ||
+                   beast._sourceId === 'volos-guide' ||
+                   beast.isDefault === true;
+
+    const traits = beast.traits || beast.trait || [];
+    const actions = beast.actions || beast.action || [];
+    const bonusActions = beast.bonus_actions || beast.bonus_action || [];
+    const reactions = beast.reactions || beast.reaction || [];
+
+    const renderEditableArray = (items, sectionKey, sectionTitle) => {
+        return `
+            <div class="stat-edit-section-header">
+                <span class="stat-section-header" style="margin:0;">${sectionTitle}</span>
+                <button type="button" class="btn btn-sm" onclick="addEditTraitItem('${sectionKey}')" style="padding:2px 8px; font-size:12px;">
+                    <span class="material-icons" style="font-size:14px; vertical-align:middle;">add</span> Add ${sectionTitle.replace(/s$/, '')}
+                </button>
+            </div>
+            <div id="edit-section-${sectionKey}" class="edit-items-container">
+                ${items.map(item => `
+                    <div class="edit-trait-item" data-section="${sectionKey}">
+                        <div class="edit-trait-header">
+                            <input type="text" class="stat-inline-input trait-name-input" value="${(item.name || '').replace(/"/g, '&quot;')}" placeholder="Name">
+                            ${sectionKey === 'actions' ? `
+                                <input type="text" class="stat-inline-input short-input" value="${(item.roll || '').replace(/"/g, '&quot;')}" placeholder="Roll">
+                                <input type="text" class="stat-inline-input short-input" value="${(item.damage || '').replace(/"/g, '&quot;')}" placeholder="Damage">
+                            ` : ''}
+                            <button type="button" class="icon-button" onclick="this.closest('.edit-trait-item').remove()" title="Delete" style="color:var(--alert-color, #e53935); padding:4px;">
+                                <span class="material-icons" style="font-size:18px;">delete</span>
+                            </button>
+                        </div>
+                        <textarea class="stat-inline-textarea" placeholder="Description">${cleanText(item.text || '')}</textarea>
+                    </div>
+                `).join('')}
+            </div>
+            <div class="stat-divider"></div>
+        `;
     };
 
-    renderStatBlock(beast);
-    openModal(els.modalDetails);
+    sb.innerHTML = `
+        <div class="details-container">
+            <div class="stat-edit-banner ${isCore ? 'core-info' : ''}">
+                <span class="material-icons" style="font-size:20px; flex-shrink:0;">${isCore ? 'info' : 'edit_note'}</span>
+                <div>
+                    ${isCore
+                        ? '<strong>Core Compendium:</strong> Saving changes will create a custom copy in <strong>Homebrew</strong> so original rules remain untouched.'
+                        : `<strong>Editing Compendium:</strong> Changes will be saved directly into <strong>${beast._sourceName || 'Imported Source'}</strong>.`
+                    }
+                </div>
+            </div>
+
+            <!-- Title & Subtitle -->
+            <div style="margin-bottom: 8px;">
+                <label class="attribute-label" style="font-size:12px; text-transform:uppercase; color:var(--text-color-secondary);">Beast Name</label>
+                <input type="text" id="edit-beast-name" class="stat-inline-input beast-title-input" value="${(beast.name || '').replace(/"/g, '&quot;')}">
+            </div>
+
+            <div class="stat-inline-row">
+                <select id="edit-beast-size" class="stat-inline-select">
+                    ${['Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan'].map(s => `
+                        <option value="${s}" ${beast.size === s ? 'selected' : ''}>${s}</option>
+                    `).join('')}
+                </select>
+                <input type="text" id="edit-beast-type" class="stat-inline-input" style="flex:1; min-width:90px;" value="${(beast.type || 'beast').replace(/"/g, '&quot;')}" placeholder="Type (e.g. beast)">
+                <input type="text" id="edit-beast-alignment" class="stat-inline-input" style="flex:1; min-width:110px;" value="${(beast.alignment || 'unaligned').replace(/"/g, '&quot;')}" placeholder="Alignment">
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <!-- AC, HP, HD, Speed -->
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:90px;">Armor Class</span>
+                <input type="number" id="edit-beast-ac" class="stat-inline-input short-input" value="${beast.ac || 10}">
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:90px;">Hit Points</span>
+                <input type="number" id="edit-beast-hp" class="stat-inline-input short-input" value="${beast.hp || 1}">
+                <span style="color:var(--text-color-secondary);">(</span>
+                <input type="text" id="edit-beast-hd" class="stat-inline-input medium-input" value="${(beast.hd || '').replace(/"/g, '&quot;')}" placeholder="e.g. 2d8+2">
+                <span style="color:var(--text-color-secondary);">)</span>
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:90px;">Speed</span>
+                <input type="text" id="edit-beast-speed" class="stat-inline-input" style="flex:1;" value="${(formatSpeed(beast) || '30 ft.').replace(/"/g, '&quot;')}" placeholder="e.g. 30 ft., fly 60 ft.">
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <!-- Ability Scores Table -->
+            <div class="stat-table-wrapper">
+                <table class="stat-table">
+                    <thead>
+                        <tr>
+                            <th>STR</th>
+                            <th>DEX</th>
+                            <th>CON</th>
+                            <th>INT</th>
+                            <th>WIS</th>
+                            <th>CHA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><input type="number" id="edit-beast-str" class="stat-score-input" value="${beast.str || 10}"></td>
+                            <td><input type="number" id="edit-beast-dex" class="stat-score-input" value="${beast.dex || 10}"></td>
+                            <td><input type="number" id="edit-beast-con" class="stat-score-input" value="${beast.con || 10}"></td>
+                            <td><input type="number" id="edit-beast-int" class="stat-score-input" value="${beast.int || 10}"></td>
+                            <td><input type="number" id="edit-beast-wis" class="stat-score-input" value="${beast.wis || 10}"></td>
+                            <td><input type="number" id="edit-beast-cha" class="stat-score-input" value="${beast.cha || 10}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <!-- Saves, Skills, Senses, Languages, CR -->
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:110px;">Saving Throws</span>
+                <input type="text" id="edit-beast-saves" class="stat-inline-input" style="flex:1;" value="${(beast.saves || '').replace(/"/g, '&quot;')}" placeholder="e.g. Dex +4">
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:110px;">Skills</span>
+                <input type="text" id="edit-beast-skills" class="stat-inline-input" style="flex:1;" value="${(beast.skills || '').replace(/"/g, '&quot;')}" placeholder="e.g. Perception +5">
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:110px;">Senses</span>
+                <input type="text" id="edit-beast-senses" class="stat-inline-input" style="flex:1;" value="${(beast.senses || '').replace(/"/g, '&quot;')}" placeholder="e.g. darkvision 60 ft., passive Perception 12">
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:110px;">Languages</span>
+                <input type="text" id="edit-beast-languages" class="stat-inline-input" style="flex:1;" value="${(beast.languages || '').replace(/"/g, '&quot;')}" placeholder="e.g. —">
+            </div>
+            <div class="attribute-line stat-inline-row">
+                <span class="attribute-label" style="min-width:110px;">Challenge (CR)</span>
+                <input type="text" id="edit-beast-cr" class="stat-inline-input short-input" value="${(beast.cr !== undefined ? beast.cr : '0').toString().replace(/"/g, '&quot;')}" placeholder="e.g. 1/4">
+            </div>
+
+            <div class="stat-divider"></div>
+
+            <!-- Traits, Actions, Bonus Actions, Reactions -->
+            ${renderEditableArray(traits, 'traits', 'Traits')}
+            ${renderEditableArray(actions, 'actions', 'Actions')}
+            ${renderEditableArray(bonusActions, 'bonus_actions', 'Bonus Actions')}
+            ${renderEditableArray(reactions, 'reactions', 'Reactions')}
+
+            <!-- Footer Buttons -->
+            <div class="stat-edit-footer">
+                <button type="button" class="btn" onclick="exitStatBlockEditMode(false)">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveStatBlockEdits()">
+                    <span class="material-icons" style="font-size:16px; vertical-align:middle; margin-right:4px;">check</span> Save Changes
+                </button>
+            </div>
+        </div>
+    `;
 }
+
+function addEditTraitItem(sectionKey) {
+    const container = document.getElementById(`edit-section-${sectionKey}`);
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'edit-trait-item';
+    div.dataset.section = sectionKey;
+    div.innerHTML = `
+        <div class="edit-trait-header">
+            <input type="text" class="stat-inline-input trait-name-input" placeholder="Name">
+            ${sectionKey === 'actions' ? `
+                <input type="text" class="stat-inline-input short-input" placeholder="Roll">
+                <input type="text" class="stat-inline-input short-input" placeholder="Damage">
+            ` : ''}
+            <button type="button" class="icon-button" onclick="this.closest('.edit-trait-item').remove()" title="Delete" style="color:var(--alert-color, #e53935); padding:4px;">
+                <span class="material-icons" style="font-size:18px;">delete</span>
+            </button>
+        </div>
+        <textarea class="stat-inline-textarea" placeholder="Description"></textarea>
+    `;
+    container.appendChild(div);
+    const firstInput = div.querySelector('input');
+    if (firstInput) firstInput.focus();
+}
+
+async function saveStatBlockEdits() {
+    if (!currentDetailBeast) return;
+
+    const nameInput = document.getElementById('edit-beast-name');
+    const newName = nameInput ? nameInput.value.trim() : '';
+    if (!newName) {
+        alert("Beast name is required.");
+        if (nameInput) nameInput.focus();
+        return;
+    }
+
+    const collectSectionItems = (sectionKey) => {
+        const items = [];
+        const container = document.getElementById(`edit-section-${sectionKey}`);
+        if (!container) return items;
+        const domItems = container.querySelectorAll(`.edit-trait-item[data-section="${sectionKey}"]`);
+        domItems.forEach(el => {
+            const nameEl = el.querySelector('.trait-name-input');
+            const textEl = el.querySelector('.stat-inline-textarea');
+            const rollEl = el.querySelector('input[placeholder="Roll"]');
+            const dmgEl = el.querySelector('input[placeholder="Damage"]');
+            const itemObj = {
+                name: nameEl ? nameEl.value.trim() : '',
+                text: textEl ? textEl.value.trim() : ''
+            };
+            if (rollEl && rollEl.value.trim()) itemObj.roll = rollEl.value.trim();
+            if (dmgEl && dmgEl.value.trim()) itemObj.damage = dmgEl.value.trim();
+            if (itemObj.name || itemObj.text) {
+                items.push(itemObj);
+            }
+        });
+        return items;
+    };
+
+    const isCore = currentDetailBeast._sourceId === 'core-5e' ||
+                   currentDetailBeast._sourceId === 'core-5.5e' ||
+                   currentDetailBeast._sourceId === 'volos-guide' ||
+                   currentDetailBeast.isDefault === true;
+
+    const updatedData = {
+        name: newName,
+        size: document.getElementById('edit-beast-size').value,
+        type: document.getElementById('edit-beast-type').value.trim() || 'beast',
+        alignment: document.getElementById('edit-beast-alignment').value.trim() || 'unaligned',
+        ac: parseInt(document.getElementById('edit-beast-ac').value, 10) || 10,
+        hp: parseInt(document.getElementById('edit-beast-hp').value, 10) || 1,
+        hd: document.getElementById('edit-beast-hd').value.trim(),
+        speed: document.getElementById('edit-beast-speed').value.trim() || '30 ft.',
+        str: parseInt(document.getElementById('edit-beast-str').value, 10) || 10,
+        dex: parseInt(document.getElementById('edit-beast-dex').value, 10) || 10,
+        con: parseInt(document.getElementById('edit-beast-con').value, 10) || 10,
+        int: parseInt(document.getElementById('edit-beast-int').value, 10) || 10,
+        wis: parseInt(document.getElementById('edit-beast-wis').value, 10) || 10,
+        cha: parseInt(document.getElementById('edit-beast-cha').value, 10) || 10,
+        saves: document.getElementById('edit-beast-saves').value.trim(),
+        skills: document.getElementById('edit-beast-skills').value.trim(),
+        senses: document.getElementById('edit-beast-senses').value.trim(),
+        languages: document.getElementById('edit-beast-languages').value.trim(),
+        cr: (document.getElementById('edit-beast-cr').value || '0').trim(),
+        traits: collectSectionItems('traits'),
+        actions: collectSectionItems('actions'),
+        bonus_actions: collectSectionItems('bonus_actions'),
+        reactions: collectSectionItems('reactions')
+    };
+
+    if (isCore) {
+        // Core beast: User selected "copies it to Homebrew"
+        const hbSource = getHomebrewSource();
+        if (!Array.isArray(hbSource.beasts)) hbSource.beasts = [];
+
+        const newHomebrewBeast = {
+            ...currentDetailBeast,
+            ...updatedData,
+            _sourceId: 'homebrew',
+            _sourceName: 'Homebrew',
+            isHomebrew: true,
+            isDefault: false
+        };
+
+        const existingIdx = hbSource.beasts.findIndex(b => b.name.toLowerCase() === newHomebrewBeast.name.toLowerCase());
+        if (existingIdx >= 0) {
+            hbSource.beasts[existingIdx] = newHomebrewBeast;
+        } else {
+            hbSource.beasts.push(newHomebrewBeast);
+        }
+
+        await SourceDB.put(hbSource);
+        currentDetailBeast = newHomebrewBeast;
+        alert(`Saved tweaked copy of "${newHomebrewBeast.name}" to Homebrew!`);
+    } else {
+        // Imported compendium or existing Homebrew beast
+        const src = (state.dataSources || []).find(s => s.id === currentDetailBeast._sourceId);
+        if (src && Array.isArray(src.beasts)) {
+            const idx = src.beasts.findIndex(b => b.name === currentDetailBeast.name);
+            const savedBeast = {
+                ...currentDetailBeast,
+                ...updatedData,
+                _sourceId: src.id,
+                _sourceName: src.name
+            };
+
+            if (idx >= 0) {
+                src.beasts[idx] = savedBeast;
+            } else {
+                src.beasts.push(savedBeast);
+            }
+
+            await SourceDB.put(src);
+
+            // Migrate seen/favs if renamed
+            if (currentDetailBeast.name !== savedBeast.name) {
+                state.characters.forEach(c => {
+                    if (c.seen && c.seen[currentDetailBeast.name]) {
+                        c.seen[savedBeast.name] = true;
+                        delete c.seen[currentDetailBeast.name];
+                    }
+                    if (c.favs && c.favs[currentDetailBeast.name]) {
+                        c.favs[savedBeast.name] = true;
+                        delete c.favs[currentDetailBeast.name];
+                    }
+                });
+                saveState();
+            }
+
+            currentDetailBeast = savedBeast;
+            alert(`Updated "${savedBeast.name}" successfully!`);
+        }
+    }
+
+    exitStatBlockEditMode(true);
+}
+
+function exitStatBlockEditMode(wasSaved = false) {
+    isStatBlockEditing = false;
+    if (currentDetailBeast) {
+        document.getElementById('detail-name').textContent = currentDetailBeast.name;
+        renderStatBlock(currentDetailBeast);
+        setupDetailHeaderButtons(currentDetailBeast);
+    }
+    renderBeasts();
+    if (currentTab === 'homebrew') {
+        renderHomebrewList();
+    }
+}
+
+window.addEditTraitItem = addEditTraitItem;
+window.saveStatBlockEdits = saveStatBlockEdits;
+window.exitStatBlockEditMode = exitStatBlockEditMode;
 
 function getModifier(score) {
     const mod = Math.floor((score - 10) / 2);
