@@ -1624,6 +1624,8 @@ function renderDataSources() {
     sources.forEach(src => {
         const card = document.createElement('div');
         card.className = `source-card ${src.enabled ? 'active' : 'disabled'}`;
+        const badgeClass = src.id === 'homebrew' ? 'homebrew' : (src.isDefault ? 'default' : 'imported');
+        const badgeText = src.id === 'homebrew' ? 'Homebrew' : (src.isDefault ? 'Default' : 'Imported');
         card.innerHTML = `
             <div class="source-card-main">
                 <div class="source-icon">
@@ -1632,10 +1634,10 @@ function renderDataSources() {
                 <div class="source-details">
                     <div class="source-title-row">
                         <span class="source-title">${src.name}</span>
-                        <span class="source-badge ${src.id === 'homebrew' ? 'custom' : (src.isDefault ? 'default' : 'custom')}">${src.id === 'homebrew' ? 'Homebrew' : (src.isDefault ? 'Default' : 'Custom')}</span>
+                        <span class="source-badge ${badgeClass}">${badgeText}</span>
                     </div>
                     <div class="source-meta">
-                        ${src.beasts ? src.beasts.length : 0} beasts • ${src.filename || 'Custom JSON'}
+                        ${src.beasts ? src.beasts.length : 0} beasts • ${src.filename || (src.id === 'homebrew' ? 'Custom Beasts' : 'Imported JSON')}
                     </div>
                 </div>
             </div>

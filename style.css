@@ -1760,9 +1760,15 @@ main#content-area {
   color: var(--header-color);
 }
 
+.source-badge.homebrew,
 .source-badge.custom {
   background-color: rgba(25, 118, 210, 0.15);
   color: #1976d2;
+}
+
+.source-badge.imported {
+  background-color: rgba(230, 81, 0, 0.15);
+  color: #d84315;
 }
 
 [data-theme="dark"] .source-badge.default {
@@ -1770,9 +1776,15 @@ main#content-area {
   color: #81c784;
 }
 
+[data-theme="dark"] .source-badge.homebrew,
 [data-theme="dark"] .source-badge.custom {
   background-color: rgba(66, 165, 245, 0.2);
   color: #64b5f6;
+}
+
+[data-theme="dark"] .source-badge.imported {
+  background-color: rgba(255, 112, 67, 0.2);
+  color: #ff7043;
 }
 
 .source-meta {
