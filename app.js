@@ -264,10 +264,84 @@ function getHomebrewSource() {
     return hbSource;
 }
 
+function getBeastKey(beastOrName, sourceId) {
+    if (!beastOrName) return '';
+    if (typeof beastOrName === 'object' && beastOrName !== null) {
+        const name = beastOrName.name || '';
+        const srcId = beastOrName._sourceId || sourceId || '';
+        return srcId ? `${name}:::${srcId}` : name;
+    }
+    return sourceId ? `${beastOrName}:::${sourceId}` : beastOrName;
+}
+
+function isBeastFav(char, beast) {
+    if (!char || !char.favs || !beast) return false;
+    const key = getBeastKey(beast);
+    if (char.favs[key] !== undefined) return !!char.favs[key];
+    if (char.favs[beast.name]) {
+        return beast._sourceId === 'core-5e';
+    }
+    return false;
+}
+
+function isBeastSeen(char, beast) {
+    if (!char || !char.seen || !beast) return false;
+    const key = getBeastKey(beast);
+    if (char.seen[key] !== undefined) return !!char.seen[key];
+    if (char.seen[beast.name]) {
+        return beast._sourceId === 'core-5e';
+    }
+    return false;
+}
+
+function migrateCharacterFavoriteKeys() {
+    let modified = false;
+    const allBeasts = getAllAvailableBeasts();
+    (state.characters || []).forEach(c => {
+        if (!c.favs) c.favs = {};
+        if (!c.seen) c.seen = {};
+
+        Object.keys(c.favs).forEach(key => {
+            if (!key.includes(':::')) {
+                const matching = allBeasts.filter(b => b.name === key);
+                if (matching.length > 0) {
+                    const target = matching.find(b => b._sourceId === 'core-5e') || matching[0];
+                    if (target && target._sourceId) {
+                        c.favs[getBeastKey(target)] = true;
+                    }
+                }
+                delete c.favs[key];
+                modified = true;
+            }
+        });
+
+        Object.keys(c.seen).forEach(key => {
+            if (!key.includes(':::')) {
+                const matching = allBeasts.filter(b => b.name === key);
+                if (matching.length > 0) {
+                    const target = matching.find(b => b._sourceId === 'core-5e') || matching[0];
+                    if (target && target._sourceId) {
+                        c.seen[getBeastKey(target)] = true;
+                    }
+                }
+                delete c.seen[key];
+                modified = true;
+            }
+        });
+    });
+    if (modified) {
+        saveState();
+    }
+}
+
 function getActiveBeasts() {
     const active = [];
     (state.dataSources || []).forEach(src => {
         if (src.enabled && Array.isArray(src.beasts)) {
+            src.beasts.forEach(b => {
+                if (!b._sourceId) b._sourceId = src.id;
+                if (!b._sourceName) b._sourceName = src.name;
+            });
             active.push(...src.beasts);
         }
     });
@@ -278,6 +352,10 @@ function getAllAvailableBeasts() {
     const all = [];
     (state.dataSources || []).forEach(src => {
         if (Array.isArray(src.beasts)) {
+            src.beasts.forEach(b => {
+                if (!b._sourceId) b._sourceId = src.id;
+                if (!b._sourceName) b._sourceName = src.name;
+            });
             all.push(...src.beasts);
         }
     });
@@ -517,9 +595,21 @@ async function init() {
                     b.name = newName;
                     srcModified = true;
                     // Migrate seen/favs across characters if name was repaired
+                    const oldKey = getBeastKey(oldName, src.id);
+                    const newKey = getBeastKey(newName, src.id);
                     state.characters.forEach(c => {
-                        if (c.seen && c.seen[oldName]) { c.seen[newName] = true; delete c.seen[oldName]; }
-                        if (c.favs && c.favs[oldName]) { c.favs[newName] = true; delete c.favs[oldName]; }
+                        if (!c.seen) c.seen = {};
+                        if (!c.favs) c.favs = {};
+                        if (c.seen[oldKey] || c.seen[oldName]) {
+                            c.seen[newKey] = true;
+                            delete c.seen[oldKey];
+                            delete c.seen[oldName];
+                        }
+                        if (c.favs[oldKey] || c.favs[oldName]) {
+                            c.favs[newKey] = true;
+                            delete c.favs[oldKey];
+                            delete c.favs[oldName];
+                        }
                     });
                 }
                 if (b.cr !== undefined && typeof b.cr === 'string') {
@@ -570,6 +660,7 @@ async function init() {
         saveState();
     }
     
+    migrateCharacterFavoriteKeys();
     renderApp();
 }
 
@@ -847,8 +938,8 @@ function filterBeasts() {
         if (!type.includes('beast') && !type.includes('elemental')) return false; // Basic safeguard
 
         // Manual Filters
-        if (state.filters.seenOnly && !char.seen[b.name]) return false;
-        if (state.filters.favOnly && !char.favs[b.name]) return false;
+        if (state.filters.seenOnly && !isBeastSeen(char, b)) return false;
+        if (state.filters.favOnly && !isBeastFav(char, b)) return false;
         if (state.filters.fly && !hasFly) return false;
         if (state.filters.swim && !hasSwim) return false;
 
@@ -887,19 +978,19 @@ function renderBeasts() {
             const item = document.createElement('div');
             item.className = 'list-item';
             
-            const isSeen = !!char.seen[b.name];
-            const isFav = !!char.favs[b.name];
+            const isSeen = isBeastSeen(char, b);
+            const isFav = isBeastFav(char, b);
 
             item.innerHTML = `
-                <div class="list-item-content" onclick="showBeastDetails('${b.name.replace(/'/g, "\\'")}')">
+                <div class="list-item-content" onclick="showBeastDetails('${b.name.replace(/'/g, "\\'")}', '${(b._sourceId || '').replace(/'/g, "\\'")}')">
                     <div class="list-item-title">${b.name}</div>
                     <div class="list-item-subtitle">${b.size} ${b.type || 'beast'}${b._sourceName ? ` • ${b._sourceName}` : ''}</div>
                 </div>
                 <div class="list-item-actions">
-                    <button class="icon-button btn-seen ${isSeen ? 'active' : ''}" onclick="toggleSeen('${b.name.replace(/'/g, "\\'")}', event)">
+                    <button class="icon-button btn-seen ${isSeen ? 'active' : ''}" onclick="toggleSeen('${b.name.replace(/'/g, "\\'")}', '${(b._sourceId || '').replace(/'/g, "\\'")}', event)">
                         <span class="material-icons">${isSeen ? 'visibility' : 'visibility_off'}</span>
                     </button>
-                    <button class="icon-button btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${b.name.replace(/'/g, "\\'")}', event)">
+                    <button class="icon-button btn-fav ${isFav ? 'active' : ''}" onclick="toggleFav('${b.name.replace(/'/g, "\\'")}', '${(b._sourceId || '').replace(/'/g, "\\'")}', event)">
                         <span class="material-icons">${isFav ? 'star' : 'star_border'}</span>
                     </button>
                 </div>
@@ -909,20 +1000,38 @@ function renderBeasts() {
     });
 }
 
-function toggleSeen(name, event) {
-    event.stopPropagation();
+function toggleSeen(name, sourceId, event) {
+    if (event && event.stopPropagation) event.stopPropagation();
     const char = getCharacter();
-    if (char.seen[name]) delete char.seen[name];
-    else char.seen[name] = true;
+    if (!char.seen) char.seen = {};
+    const key = getBeastKey(name, sourceId);
+    const isCurrentlySeen = isBeastSeen(char, { name, _sourceId: sourceId });
+
+    if (isCurrentlySeen) {
+        delete char.seen[key];
+        delete char.seen[name];
+    } else {
+        char.seen[key] = true;
+        delete char.seen[name];
+    }
     saveState();
     renderBeasts();
 }
 
-function toggleFav(name, event) {
-    event.stopPropagation();
+function toggleFav(name, sourceId, event) {
+    if (event && event.stopPropagation) event.stopPropagation();
     const char = getCharacter();
-    if (char.favs[name]) delete char.favs[name];
-    else char.favs[name] = true;
+    if (!char.favs) char.favs = {};
+    const key = getBeastKey(name, sourceId);
+    const isCurrentlyFav = isBeastFav(char, { name, _sourceId: sourceId });
+
+    if (isCurrentlyFav) {
+        delete char.favs[key];
+        delete char.favs[name];
+    } else {
+        char.favs[key] = true;
+        delete char.favs[name];
+    }
     saveState();
     renderBeasts();
 }
@@ -1268,8 +1377,16 @@ async function copyStatBlockText(beast) {
     }
 }
 
-function showBeastDetails(name) {
-    const beast = getActiveBeasts().find(b => b.name === name) || getAllAvailableBeasts().find(b => b.name === name);
+function showBeastDetails(name, sourceId) {
+    let beast = null;
+    const active = getActiveBeasts();
+    if (sourceId) {
+        beast = active.find(b => b.name === name && b._sourceId === sourceId)
+             || getAllAvailableBeasts().find(b => b.name === name && b._sourceId === sourceId);
+    }
+    if (!beast) {
+        beast = active.find(b => b.name === name) || getAllAvailableBeasts().find(b => b.name === name);
+    }
     if (!beast) return;
     
     currentDetailBeast = beast;
@@ -1296,8 +1413,8 @@ function setupDetailHeaderButtons(beast) {
     }
 
     const char = getCharacter();
-    const isSeen = !!char.seen[beast.name];
-    const isFav = !!char.favs[beast.name];
+    const isSeen = isBeastSeen(char, beast);
+    const isFav = isBeastFav(char, beast);
 
     headerActions.innerHTML = `
         <button id="detail-btn-copy" class="icon-button" title="Copy Stat Block"><span class="material-icons">content_copy</span></button>
@@ -1325,8 +1442,8 @@ function setupDetailHeaderButtons(beast) {
     const btnSeen = document.getElementById('detail-btn-seen');
     if (btnSeen) {
         btnSeen.onclick = () => {
-            toggleSeen(beast.name, { stopPropagation: () => {} });
-            const updatedIsSeen = !!char.seen[beast.name];
+            toggleSeen(beast.name, beast._sourceId, { stopPropagation: () => {} });
+            const updatedIsSeen = isBeastSeen(char, beast);
             btnSeen.innerHTML = `<span class="material-icons">${updatedIsSeen ? 'visibility' : 'visibility_off'}</span>`;
         };
     }
@@ -1334,8 +1451,8 @@ function setupDetailHeaderButtons(beast) {
     const btnFav = document.getElementById('detail-btn-fav');
     if (btnFav) {
         btnFav.onclick = () => {
-            toggleFav(beast.name, { stopPropagation: () => {} });
-            const updatedIsFav = !!char.favs[beast.name];
+            toggleFav(beast.name, beast._sourceId, { stopPropagation: () => {} });
+            const updatedIsFav = isBeastFav(char, beast);
             btnFav.innerHTML = `<span class="material-icons">${updatedIsFav ? 'star' : 'star_border'}</span>`;
         };
     }
@@ -1642,13 +1759,19 @@ async function saveStatBlockEdits() {
 
             // Migrate seen/favs if renamed
             if (currentDetailBeast.name !== savedBeast.name) {
+                const oldKey = getBeastKey(currentDetailBeast);
+                const newKey = getBeastKey(savedBeast);
                 state.characters.forEach(c => {
-                    if (c.seen && c.seen[currentDetailBeast.name]) {
-                        c.seen[savedBeast.name] = true;
+                    if (!c.seen) c.seen = {};
+                    if (!c.favs) c.favs = {};
+                    if (c.seen[oldKey] || c.seen[currentDetailBeast.name]) {
+                        c.seen[newKey] = true;
+                        delete c.seen[oldKey];
                         delete c.seen[currentDetailBeast.name];
                     }
-                    if (c.favs && c.favs[currentDetailBeast.name]) {
-                        c.favs[savedBeast.name] = true;
+                    if (c.favs[oldKey] || c.favs[currentDetailBeast.name]) {
+                        c.favs[newKey] = true;
+                        delete c.favs[oldKey];
                         delete c.favs[currentDetailBeast.name];
                     }
                 });
@@ -1796,7 +1919,7 @@ function renderHomebrewList() {
         item.className = 'list-item';
         
         item.innerHTML = `
-            <div class="list-item-content" onclick="showBeastDetails('${b.name.replace(/'/g, "\\'")}')">
+            <div class="list-item-content" onclick="showBeastDetails('${b.name.replace(/'/g, "\\'")}', 'homebrew')">
                 <div class="list-item-title">${b.name}</div>
                 <div class="list-item-subtitle">CR ${b.cr} | ${b.size} ${b.type || 'beast'}</div>
             </div>
@@ -1825,7 +1948,7 @@ function openHomebrewEditor(index = -1) {
     copySelect.innerHTML = '<option value="">-- Copy from existing --</option>';
     getActiveBeasts().sort((a, b) => a.name.localeCompare(b.name)).forEach(b => {
         const opt = document.createElement('option');
-        opt.value = b.name;
+        opt.value = `${b.name}:::${b._sourceId || ''}`;
         opt.textContent = `${b.name} (${b._sourceName || 'Core'})`;
         copySelect.appendChild(opt);
     });
@@ -1842,9 +1965,11 @@ function openHomebrewEditor(index = -1) {
 }
 
 function handleCopyFromChanged(e) {
-    const name = e.target.value;
-    if (!name) return;
-    const beast = getActiveBeasts().find(b => b.name === name);
+    const val = e.target.value;
+    if (!val) return;
+    const [name, sourceId] = val.split(':::');
+    const beast = getActiveBeasts().find(b => b.name === name && (!sourceId || b._sourceId === sourceId))
+               || getActiveBeasts().find(b => b.name === val);
     if (beast) {
         populateHomebrewForm(beast);
     }
@@ -1917,9 +2042,21 @@ async function saveHomebrew() {
         // If name changed, migrate seen/fav
         const oldName = hbSource.beasts[editingHomebrewIndex] ? hbSource.beasts[editingHomebrewIndex].name : '';
         if (oldName && oldName !== name) {
+            const oldKey = getBeastKey(oldName, 'homebrew');
+            const newKey = getBeastKey(name, 'homebrew');
             state.characters.forEach(c => {
-                if (c.seen[oldName]) { c.seen[name] = true; delete c.seen[oldName]; }
-                if (c.favs[oldName]) { c.favs[name] = true; delete c.favs[oldName]; }
+                if (!c.seen) c.seen = {};
+                if (!c.favs) c.favs = {};
+                if (c.seen[oldKey] || c.seen[oldName]) {
+                    c.seen[newKey] = true;
+                    delete c.seen[oldKey];
+                    delete c.seen[oldName];
+                }
+                if (c.favs[oldKey] || c.favs[oldName]) {
+                    c.favs[newKey] = true;
+                    delete c.favs[oldKey];
+                    delete c.favs[oldName];
+                }
             });
             saveState();
         }
@@ -1948,9 +2085,16 @@ async function deleteHomebrew(index, event) {
         hbSource.beasts.splice(index, 1);
         
         // Clean up refs
+        const hbKey = getBeastKey(name, 'homebrew');
         state.characters.forEach(c => {
-            delete c.seen[name];
-            delete c.favs[name];
+            if (c.seen) {
+                delete c.seen[hbKey];
+                delete c.seen[name];
+            }
+            if (c.favs) {
+                delete c.favs[hbKey];
+                delete c.favs[name];
+            }
         });
         saveState();
         
@@ -2040,6 +2184,19 @@ async function deleteSource(sourceId, event) {
         if (!confirm(`Clear all ${count} custom beasts from homebrew.json?`)) return;
         src.beasts = [];
         await SourceDB.put(src);
+        state.characters.forEach(c => {
+            if (c.favs) {
+                Object.keys(c.favs).forEach(k => {
+                    if (k.endsWith(':::homebrew')) delete c.favs[k];
+                });
+            }
+            if (c.seen) {
+                Object.keys(c.seen).forEach(k => {
+                    if (k.endsWith(':::homebrew')) delete c.seen[k];
+                });
+            }
+        });
+        saveState();
         renderDataSources();
         renderApp();
         return;
@@ -2053,6 +2210,19 @@ async function deleteSource(sourceId, event) {
     
     await SourceDB.delete(sourceId);
     state.dataSources = state.dataSources.filter(s => s.id !== sourceId);
+    state.characters.forEach(c => {
+        if (c.favs) {
+            Object.keys(c.favs).forEach(k => {
+                if (k.endsWith(`:::${sourceId}`)) delete c.favs[k];
+            });
+        }
+        if (c.seen) {
+            Object.keys(c.seen).forEach(k => {
+                if (k.endsWith(`:::${sourceId}`)) delete c.seen[k];
+            });
+        }
+    });
+    saveState();
     renderDataSources();
     renderBeasts();
 }
@@ -2168,6 +2338,23 @@ async function handleSourceUpload(event) {
 }
 
 window.handleSourceUpload = handleSourceUpload;
+window.toggleFav = toggleFav;
+window.toggleSeen = toggleSeen;
+window.isBeastFav = isBeastFav;
+window.isBeastSeen = isBeastSeen;
+window.getBeastKey = getBeastKey;
+window.showBeastDetails = showBeastDetails;
+window.editHomebrew = editHomebrew;
+window.deleteHomebrew = deleteHomebrew;
+window.openHomebrewEditor = openHomebrewEditor;
+window.saveHomebrew = saveHomebrew;
+window.toggleSource = toggleSource;
+window.deleteSource = deleteSource;
+window.exportSource = exportSource;
+window.reloadDefaultSources = reloadDefaultSources;
+window.addEditTraitItem = addEditTraitItem;
+window.exitStatBlockEditMode = exitStatBlockEditMode;
+window.saveStatBlockEdits = saveStatBlockEdits;
 
 // Start app
 document.addEventListener('DOMContentLoaded', init);
